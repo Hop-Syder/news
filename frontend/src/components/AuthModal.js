@@ -10,9 +10,10 @@ import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
 const AuthModal = ({ isOpen, onClose, mode, onSwitchMode }) => {
-  const { login, register } = useAuth();
+  const { login, register, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   
   const [formData, setFormData] = useState({
