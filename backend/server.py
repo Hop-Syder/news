@@ -14,6 +14,7 @@ from passlib.context import CryptContext
 from jose import JWTError, jwt
 import base64
 import re
+from firebase_config import verify_firebase_token
 
 
 ROOT_DIR = Path(__file__).parent
