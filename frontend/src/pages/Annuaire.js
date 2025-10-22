@@ -324,30 +324,6 @@ const Annuaire = () => {
         )}
       </div>
 
-      {/* Contact Info Modal */}
-      <Dialog open={showContactModal} onOpenChange={setShowContactModal}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Informations de contact</DialogTitle>
-          </DialogHeader>
-          {contactInfo && (
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-gray-700">Téléphone</label>
-                <p className="text-lg font-semibold">{contactInfo.phone}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">WhatsApp</label>
-                <p className="text-lg font-semibold">{contactInfo.whatsapp}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium text-gray-700">Email</label>
-                <p className="text-lg font-semibold">{contactInfo.email}</p>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
