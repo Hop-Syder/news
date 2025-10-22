@@ -63,11 +63,25 @@ const Annuaire = () => {
     }));
   };
 
-  const fetchContactInfo = async (entrepreneurId) => {
+  const openWhatsApp = async (entrepreneurId) => {
     try {
       const response = await axios.get(`${API}/entrepreneurs/${entrepreneurId}/contact`);
-      setContactInfo(response.data);
-      setShowContactModal(true);
+      const { whatsapp } = response.data;
+      // Nettoyer le numéro (enlever espaces, tirets, etc.)
+      const cleanNumber = whatsapp.replace(/[^\d+]/g, '');
+      // Ouvrir WhatsApp
+      window.open(`https://wa.me/${cleanNumber}`, '_blank');
+    } catch (error) {
+      console.error('Failed to fetch contact info:', error);
+    }
+  };
+
+  const openEmail = async (entrepreneurId) => {
+    try {
+      const response = await axios.get(`${API}/entrepreneurs/${entrepreneurId}/contact`);
+      const { email } = response.data;
+      // Ouvrir client email
+      window.location.href = `mailto:${email}`;
     } catch (error) {
       console.error('Failed to fetch contact info:', error);
     }
