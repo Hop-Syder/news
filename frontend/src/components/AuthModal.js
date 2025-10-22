@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 const AuthModal = ({ isOpen, onClose, mode, onSwitchMode }) => {
   const { login, register } = useAuth();
