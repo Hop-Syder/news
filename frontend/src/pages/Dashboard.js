@@ -88,21 +88,38 @@ const Dashboard = () => {
     setFormData(prev => ({ ...prev, logo: '' }));
   };
 
-  const addTag = () => {
-    if (tagInput.trim() && formData.tags.length < 5) {
+  const addTag = (tagValue) => {
+    if (formData.tags.length < 5 && !formData.tags.includes(tagValue)) {
       setFormData(prev => ({
         ...prev,
-        tags: [...prev.tags, tagInput.trim()]
+        tags: [...prev.tags, tagValue]
       }));
-      setTagInput('');
     }
   };
 
-  const removeTag = (index) => {
+  const removeTag = (tagValue) => {
     setFormData(prev => ({
       ...prev,
-      tags: prev.tags.filter((_, i) => i !== index)
+      tags: prev.tags.filter(t => t !== tagValue)
     }));
+  };
+
+  const filteredTags = () => {
+    let tags = AVAILABLE_TAGS;
+    
+    // Filtrer par catégorie
+    if (selectedCategory !== 'all') {
+      tags = TAGS_BY_CATEGORY[selectedCategory] || [];
+    }
+    
+    // Filtrer par recherche
+    if (tagSearchQuery) {
+      tags = tags.filter(tag => 
+        tag.value.toLowerCase().includes(tagSearchQuery.toLowerCase())
+      );
+    }
+    
+    return tags;
   };
 
   const validateStep = () => {
