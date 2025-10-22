@@ -13,7 +13,8 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { COUNTRIES, getCountryCities } from '@/data/countries';
 import { PROFILE_TYPES } from '@/data/profileTypes';
-import { ChevronLeft, ChevronRight, CheckCircle2, Upload, X } from 'lucide-react';
+import { AVAILABLE_TAGS, CATEGORY_NAMES, TAGS_BY_CATEGORY } from '@/data/tags';
+import { ChevronLeft, ChevronRight, CheckCircle2, Upload, X, Search } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
