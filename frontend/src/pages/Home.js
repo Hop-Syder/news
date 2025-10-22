@@ -80,7 +80,14 @@ const Home = () => {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-bleu-marine via-pourpre-royal to-bleu-marine text-white py-20">
+      <section 
+        className="relative bg-gradient-to-br from-bleu-marine via-pourpre-royal to-bleu-marine text-white py-20"
+        style={{
+          backgroundImage: `linear-gradient(rgba(0, 47, 108, 0.85), rgba(74, 35, 90, 0.85)), url(${IMAGES.hero})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center'
+        }}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h1 className="text-5xl md:text-6xl font-bold mb-6 animate-fade-in">
