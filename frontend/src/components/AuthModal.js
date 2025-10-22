@@ -92,6 +92,26 @@ const AuthModal = ({ isOpen, onClose, mode, onSwitchMode }) => {
     setLoading(false);
   };
 
+  const handleGoogleLogin = async () => {
+    setError('');
+    setGoogleLoading(true);
+
+    const result = await loginWithGoogle();
+
+    if (result.success) {
+      onClose();
+      if (result.user.hasProfile) {
+        navigate('/annuaire');
+      } else {
+        navigate('/dashboard');
+      }
+    } else {
+      setError(result.error);
+    }
+
+    setGoogleLoading(false);
+  };
+
   const handleClose = () => {
     setFormData({
       email: '',
