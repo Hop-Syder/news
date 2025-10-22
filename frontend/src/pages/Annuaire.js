@@ -292,19 +292,19 @@ const Annuaire = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => fetchContactInfo(entrepreneur.id)}
-                    className="flex-1"
-                    data-testid="show-phone-btn"
+                    onClick={() => openWhatsApp(entrepreneur.id)}
+                    className="flex-1 bg-vert-emeraude/10 hover:bg-vert-emeraude/20 border-vert-emeraude text-vert-emeraude"
+                    data-testid="whatsapp-btn"
                   >
                     <Phone className="w-4 h-4 mr-1" />
-                    Numéro
+                    WhatsApp
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => fetchContactInfo(entrepreneur.id)}
-                    className="flex-1"
-                    data-testid="show-email-btn"
+                    onClick={() => openEmail(entrepreneur.id)}
+                    className="flex-1 hover:bg-bleu-marine/10"
+                    data-testid="email-btn"
                   >
                     <Mail className="w-4 h-4 mr-1" />
                     Email
