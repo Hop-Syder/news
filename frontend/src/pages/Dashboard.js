@@ -45,6 +45,8 @@ const Dashboard = () => {
 
   const [tagInput, setTagInput] = useState('');
   const [logoPreview, setLogoPreview] = useState('');
+  const [tagSearchQuery, setTagSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   useEffect(() => {
     if (!authLoading && !user) {
