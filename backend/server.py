@@ -303,6 +303,74 @@ async def get_me(current_user: User = Depends(get_current_user)):
         hasProfile=current_user.hasProfile
     )
 
+@api_router.post("/auth/firebase", response_model=Token)
+async def firebase_login(firebase_token: dict = Body(...)):
+    """Login or register with Firebase token"""
+    try:
+        # Verify Firebase token
+        decoded_token = verify_firebase_token(firebase_token.get('idToken'))
+        
+        firebase_uid = decoded_token['uid']
+        email = decoded_token.get('email')
+        name = decoded_token.get('name', '')
+        
+        # Split name into first and last
+        name_parts = name.split(' ', 1)
+        first_name = name_parts[0] if name_parts else ''
+        last_name = name_parts[1] if len(name_parts) > 1 else ''
+        
+        # Check if user exists
+        user = await db.users.find_one({"email": email}, {"_id": 0})
+        
+        if not user:
+            # Create new user
+            user_id = str(uuid.uuid4())
+            user_doc = {
+                "id": user_id,
+                "email": email,
+                "password": "",  # No password for Firebase users
+                "firstName": first_name,
+                "lastName": last_name,
+                "googleId": firebase_uid,
+                "hasProfile": False,
+                "createdAt": datetime.now(timezone.utc).isoformat()
+            }
+            await db.users.insert_one(user_doc)
+            user = user_doc
+        else:
+            # Update googleId if not set
+            if not user.get('googleId'):
+                await db.users.update_one(
+                    {"id": user['id']},
+                    {"$set": {"googleId": firebase_uid}}
+                )
+                user['googleId'] = firebase_uid
+        
+        # Create JWT token
+        access_token = create_access_token(
+            data={"sub": user['id']},
+            expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        )
+        
+        return Token(
+            access_token=access_token,
+            token_type="bearer",
+            user=UserResponse(
+                id=user['id'],
+                email=user['email'],
+                firstName=user.get('firstName'),
+                lastName=user.get('lastName'),
+                hasProfile=user.get('hasProfile', False)
+            )
+        )
+        
+    except Exception as e:
+        logger.error(f"Firebase auth error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Firebase authentication failed: {str(e)}"
+        )
+
 
 # ========== ENTREPRENEUR ROUTES ==========
 
