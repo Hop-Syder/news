@@ -405,38 +405,104 @@ const Dashboard = () => {
                 </h2>
 
                 <div>
-                  <Label>Compétences / Tags * (max 5)</Label>
-                  <div className="flex gap-2 mb-2">
+                  <Label>Compétences / Tags * (max 5) - {formData.tags.length}/5 sélectionnés</Label>
+                  
+                  {/* Tags sélectionnés */}
+                  {formData.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-4 p-3 bg-jaune-soleil/10 rounded-lg border border-jaune-soleil">
+                      {formData.tags.map((tag) => (
+                        <Badge key={tag} className="bg-jaune-soleil text-bleu-marine hover:bg-jaune-soleil/90 px-3 py-1.5 text-sm">
+                          {AVAILABLE_TAGS.find(t => t.value === tag)?.icon} {tag}
+                          <button
+                            onClick={() => removeTag(tag)}
+                            className="ml-2 hover:text-red-600"
+                            type="button"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Barre de recherche */}
+                  <div className="relative mb-3">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
-                      value={tagInput}
-                      onChange={(e) => setTagInput(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                      placeholder="Ex: Design, Marketing, Développement..."
+                      value={tagSearchQuery}
+                      onChange={(e) => setTagSearchQuery(e.target.value)}
+                      placeholder="Rechercher une compétence..."
+                      className="pl-10"
                       disabled={formData.tags.length >= 5}
-                      data-testid="tag-input"
                     />
+                  </div>
+
+                  {/* Filtres par catégorie */}
+                  <div className="flex gap-2 mb-3 overflow-x-auto pb-2">
                     <Button
                       type="button"
-                      onClick={addTag}
-                      disabled={formData.tags.length >= 5 || !tagInput.trim()}
-                      className="bg-jaune-soleil text-bleu-marine hover:bg-jaune-soleil/90"
+                      variant={selectedCategory === 'all' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setSelectedCategory('all')}
+                      className={selectedCategory === 'all' ? 'bg-bleu-marine' : ''}
                     >
-                      Ajouter
+                      Toutes
                     </Button>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.tags.map((tag, index) => (
-                      <Badge key={index} className="bg-bleu-marine text-white">
-                        {tag}
-                        <button
-                          onClick={() => removeTag(index)}
-                          className="ml-2 hover:text-red-300"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </Badge>
+                    {Object.keys(CATEGORY_NAMES).slice(0, 6).map((cat) => (
+                      <Button
+                        key={cat}
+                        type="button"
+                        variant={selectedCategory === cat ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setSelectedCategory(cat)}
+                        className={selectedCategory === cat ? 'bg-bleu-marine' : ''}
+                      >
+                        {CATEGORY_NAMES[cat]}
+                      </Button>
                     ))}
                   </div>
+
+                  {/* Liste des tags disponibles */}
+                  <div className="max-h-64 overflow-y-auto border rounded-lg p-3 bg-gray-50">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                      {filteredTags().map((tag) => {
+                        const isSelected = formData.tags.includes(tag.value);
+                        const isDisabled = formData.tags.length >= 5 && !isSelected;
+                        
+                        return (
+                          <button
+                            key={tag.value}
+                            type="button"
+                            onClick={() => isSelected ? removeTag(tag.value) : addTag(tag.value)}
+                            disabled={isDisabled}
+                            className={`
+                              px-3 py-2 rounded-lg text-sm font-medium text-left transition-all
+                              ${isSelected 
+                                ? 'bg-vert-emeraude text-white ring-2 ring-vert-emeraude' 
+                                : isDisabled
+                                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                                  : 'bg-white hover:bg-bleu-marine/10 hover:ring-1 hover:ring-bleu-marine'
+                              }
+                            `}
+                            data-testid={`tag-${tag.value}`}
+                          >
+                            <span className="mr-1">{tag.icon}</span>
+                            {tag.value}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    
+                    {filteredTags().length === 0 && (
+                      <p className="text-center text-gray-500 py-4">
+                        Aucune compétence trouvée
+                      </p>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-gray-500 mt-2">
+                    Cliquez sur une compétence pour l'ajouter (max 5)
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
