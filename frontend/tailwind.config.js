@@ -13,6 +13,16 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
+  			// Nexus Connect Brand Colors
+  			'jaune-soleil': '#FAD02E',
+  			'bleu-marine': '#002F6C',
+  			'vert-emeraude': '#00796B',
+  			'pourpre-royal': '#4A235A',
+  			'rose-pastel': '#FFCCCC',
+  			'gris-chaud': '#7E7E7E',
+  			'charbon': '#36454F',
+  			
+  			// Shadcn defaults
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
