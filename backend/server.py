@@ -371,6 +371,12 @@ async def firebase_login(firebase_token: dict = Body(...)):
             detail=f"Firebase authentication failed: {str(e)}"
         )
 
+# Dans server.py, après la définition de `firebase_login`
+@app.post("/auth/firebase", response_model=Token)
+async def firebase_login_root(firebase_token: dict = Body(...)):
+    return await firebase_login(firebase_token)
+
+
 
 # ========== ENTREPRENEUR ROUTES ==========
 
