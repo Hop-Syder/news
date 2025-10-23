@@ -118,14 +118,20 @@ export const AuthProvider = ({ children }) => {
 
   const loginWithGoogle = async () => {
     try {
+      console.log('🔵 [AUTH] Starting Google Sign-In...');
+      
       // Sign in with Google popup
       const result = await signInWithPopup(auth, googleProvider);
+      console.log('✅ [AUTH] Google Sign-In successful');
       
       // Get Firebase ID token
       const idToken = await result.user.getIdToken();
+      console.log('✅ [AUTH] Firebase ID token obtained');
       
       // Send to backend
+      console.log('🔵 [AUTH] Sending to backend:', `${API}/auth/firebase`);
       const response = await axios.post(`${API}/auth/firebase`, { idToken });
+      console.log('✅ [AUTH] Backend response received');
       
       const { access_token, user: userData } = response.data;
       localStorage.setItem('token', access_token);
@@ -135,9 +141,15 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, user: userData };
     } catch (error) {
+      console.error('❌ [AUTH] Google login error:', error);
+      console.error('❌ [AUTH] Error details:', {
+        message: error.message,
+        code: error.code,
+        response: error.response?.data
+      });
       return {
         success: false,
-        error: error.message || 'Google login failed'
+        error: error.response?.data?.detail || error.message || 'Google login failed'
       };
     }
   };
