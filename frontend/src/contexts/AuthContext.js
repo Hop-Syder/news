@@ -80,14 +80,20 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
+      console.log('🔵 [AUTH] Starting login with Firebase...');
+      
       // Login with Firebase
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      console.log('✅ [AUTH] Firebase login successful');
       
       // Get Firebase ID token
       const idToken = await userCredential.user.getIdToken();
+      console.log('✅ [AUTH] Firebase ID token obtained');
       
       // Send to backend
+      console.log('🔵 [AUTH] Sending to backend:', `${API}/auth/firebase`);
       const response = await axios.post(`${API}/auth/firebase`, { idToken });
+      console.log('✅ [AUTH] Backend response received');
       
       const { access_token, user: userData } = response.data;
       localStorage.setItem('token', access_token);
@@ -97,9 +103,15 @@ export const AuthProvider = ({ children }) => {
       
       return { success: true, user: userData };
     } catch (error) {
+      console.error('❌ [AUTH] Login error:', error);
+      console.error('❌ [AUTH] Error details:', {
+        message: error.message,
+        code: error.code,
+        response: error.response?.data
+      });
       return {
         success: false,
-        error: error.message || 'Login failed'
+        error: error.response?.data?.detail || error.message || 'Login failed'
       };
     }
   };
