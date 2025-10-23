@@ -12,7 +12,7 @@ import { auth, googleProvider } from '@/lib/firebase';
 const AuthContext = createContext(null);
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API = `${BACKEND_URL}`;
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
