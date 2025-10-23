@@ -192,19 +192,26 @@ const AuthModal = ({ isOpen, onClose, mode, onSwitchMode }) => {
           </div>
 
           {mode === 'register' && (
-            <div>
-              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-              <Input
-                id="confirmPassword"
-                name="confirmPassword"
-                type="password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                placeholder="••••••••"
-              />
-            </div>
-          )}
+  <div>
+    <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+    <Input
+      id="confirmPassword"
+      name="confirmPassword"
+      type="password"
+      value={formData.confirmPassword}
+      onChange={handleChange}
+      required={mode === 'register'}
+      placeholder="••••••••"
+      autoComplete="new-password"
+    />
+    {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+      <p className="text-xs text-red-500 mt-1">
+        Les mots de passe ne correspondent pas
+      </p>
+    )}
+  </div>
+)}
+
 
           <Button
             type="submit"
