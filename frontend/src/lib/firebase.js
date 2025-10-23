@@ -1,14 +1,15 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider } from 'firebase/auth';
 
+// Configuration Firebase depuis les variables d'environnement
 const firebaseConfig = {
-  apiKey: "AIzaSyAwX72obWD17oNzxlT1y-IxxJVYKFgBqY0",
-  authDomain: "nexuspartners-connect.firebaseapp.com",
-  projectId: "nexuspartners-connect",
-  storageBucket: "nexuspartners-connect.firebasestorage.app",
-  messagingSenderId: "905049465425",
-  appId: "1:905049465425:web:b1115bdbcbbf8f5a7c0e70",
-  measurementId: "G-LN4RFK73TM"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
