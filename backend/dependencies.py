@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from supabase import Client
-from backend.services.supabase_client import get_supabase_admin
+from services.supabase_client import get_supabase_admin
 from typing import Dict, Optional
 import logging
 
