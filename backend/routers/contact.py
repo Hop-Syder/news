@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from backend.models.contact import ContactMessageCreate, ContactMessage, StatsResponse
-from backend.services.supabase_client import get_supabase_admin
+from models.contact import ContactMessageCreate, ContactMessage, StatsResponse
+from services.supabase_client import get_supabase_admin
 from supabase import Client
 import logging
 
