@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.config import get_settings
-from backend.routers import auth, entrepreneurs, contact, storage
+from config import get_settings
+from routers import auth, entrepreneurs, contact, storage
 import logging
 from pathlib import Path
 from dotenv import load_dotenv
