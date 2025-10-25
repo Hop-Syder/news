@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, status
-from backend.models.user import UserCreate, UserLogin, UserResponse, AuthResponse
-from backend.services.supabase_client import get_supabase_admin
-from backend.dependencies import get_current_user
+from models.user import UserCreate, UserLogin, UserResponse, AuthResponse
+from services.supabase_client import get_supabase_admin
+from dependencies import get_current_user
 from supabase import Client
 import logging
 
