@@ -183,8 +183,8 @@ Un appel API est alors effectué vers `/api/entrepreneurs/:id/contact` pour réc
 
 ### 🌐 URLs
 
-**Frontend:** https://westafrica-net.preview.emergentagent.com/
-**Backend API:** https://westafrica-net.preview.emergentagent.com/api/
+**Frontend:** https://supabase-migrate-9.preview.emergentagent.com/
+**Backend API:** https://supabase-migrate-9.preview.emergentagent.com/api/
 
 ### 📝 Prochaines Étapes (Optionnelles)
 
