@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, status
-from backend.services.supabase_client import get_supabase_admin
-from backend.dependencies import get_current_user
+from services.supabase_client import get_supabase_admin
+from dependencies import get_current_user
 from supabase import Client
 import logging
 import uuid
