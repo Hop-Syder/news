@@ -9,6 +9,9 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
+# Définir le répertoire racine de l'application
+APP_ROOT="/app"
+
 # 1. Vérifier les fichiers
 echo "📁 Vérification des fichiers..."
 
@@ -21,16 +24,16 @@ check_file() {
 }
 
 # Backend
-check_file "/app/backend/server.py"
-check_file "/app/backend/config.py"
-check_file "/app/backend/services/supabase_client.py"
-check_file "/app/backend/dependencies.py"
-check_file "/app/backend/.env"
+check_file "$APP_ROOT/backend/server.py"
+check_file "$APP_ROOT/backend/config.py"
+check_file "$APP_ROOT/backend/services/supabase_client.py"
+check_file "$APP_ROOT/backend/dependencies.py"
+check_file "$APP_ROOT/backend/.env"
 
 # Frontend
-check_file "/app/frontend/src/lib/supabase.js"
-check_file "/app/frontend/src/contexts/AuthContext.js"
-check_file "/app/frontend/.env"
+check_file "$APP_ROOT/frontend/src/lib/supabase.js"
+check_file "$APP_ROOT/frontend/src/contexts/AuthContext.js"
+check_file "$APP_ROOT/frontend/.env"
 
 echo ""
 
@@ -45,7 +48,7 @@ else
 fi
 
 # Frontend
-if grep -q "@supabase/supabase-js" /app/frontend/package.json; then
+if grep -q "@supabase/supabase-js" "$APP_ROOT/frontend/package.json"; then
     echo -e "${GREEN}✅${NC} Frontend: @supabase/supabase-js dans package.json"
 else
     echo -e "${RED}❌${NC} Frontend: @supabase/supabase-js NON trouvé"
@@ -77,20 +80,20 @@ check_env() {
 }
 
 # Backend .env
-check_env "/app/backend/.env" "SUPABASE_URL"
-check_env "/app/backend/.env" "SUPABASE_ANON_KEY"
-check_env "/app/backend/.env" "SUPABASE_SERVICE_KEY"
+check_env "$APP_ROOT/backend/.env" "SUPABASE_URL"
+check_env "$APP_ROOT/backend/.env" "SUPABASE_ANON_KEY"
+check_env "$APP_ROOT/backend/.env" "SUPABASE_SERVICE_KEY"
 
 # Frontend .env
-check_env "/app/frontend/.env" "REACT_APP_SUPABASE_URL"
-check_env "/app/frontend/.env" "REACT_APP_SUPABASE_ANON_KEY"
+check_env "$APP_ROOT/frontend/.env" "REACT_APP_SUPABASE_URL"
+check_env "$APP_ROOT/frontend/.env" "REACT_APP_SUPABASE_ANON_KEY"
 
 echo ""
 
 # 4. Vérifier l'ancienne configuration
 echo "🗑️  Vérification des anciens fichiers..."
 
-if [ -f "/app/backend/firebase_config_old.py" ]; then
+if [ -f "$APP_ROOT/backend/firebase_config_old.py" ]; then
     echo -e "${GREEN}✅${NC} Firebase config archivé"
 else
     echo -e "${YELLOW}⚠️${NC}  Firebase config non archivé (normal si pas présent)"
@@ -107,11 +110,11 @@ echo ""
 # 5. Test de syntaxe Python
 echo "🐍 Test de syntaxe Python..."
 
-if python3 -m py_compile /app/backend/server.py 2>/dev/null; then
+if python3 -m py_compile "$APP_ROOT/backend/server.py" 2>/dev/null; then
     echo -e "${GREEN}✅${NC} server.py - Syntaxe valide"
 else
     echo -e "${RED}❌${NC} server.py - Erreur de syntaxe"
-    python3 -m py_compile /app/backend/server.py
+    python3 -m py_compile "$APP_ROOT/backend/server.py"
 fi
 
 echo ""
@@ -123,14 +126,14 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 echo ""
 
 # Vérifier si Supabase est configuré
-if grep -q "your-project-ref" /app/backend/.env 2>/dev/null; then
+if grep -q "your-project-ref" "$APP_ROOT/backend/.env" 2>/dev/null; then
     echo -e "${YELLOW}⚠️  SUPABASE NON CONFIGURÉ${NC}"
     echo ""
     echo "📋 ACTIONS REQUISES:"
     echo "1. Suivre SUPABASE_SETUP.md pour créer le projet"
     echo "2. Récupérer les credentials (URL, anon key, service_role key)"
-    echo "3. Mettre à jour /app/backend/.env"
-    echo "4. Mettre à jour /app/frontend/.env"
+    echo "3. Mettre à jour $APP_ROOT/backend/.env"
+    echo "4. Mettre à jour $APP_ROOT/frontend/.env"
     echo "5. Redémarrer les services:"
     echo "   sudo supervisorctl restart backend"
     echo "   sudo supervisorctl restart frontend"
