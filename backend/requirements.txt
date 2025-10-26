@@ -2,6 +2,8 @@
 fastapi==0.110.1
 uvicorn==0.25.0
 
+python-multipart>=0.0.9
+
 # Supabase 
 supabase==2.15.0
 
