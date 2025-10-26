@@ -35,9 +35,19 @@ Pricing Plan: Free
 Une fois le projet créé (2-3 minutes), aller dans **Settings > API**:
 
 ```
-Project URL: https://[votre-project-ref].supabase.co
-anon (public) key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-service_role key: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+POSTGRES_URL="postgres://postgres.xfzdcljwyddhgzcpcifl:lDh26GdHeA6zILfB@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
+POSTGRES_USER="postgres"
+POSTGRES_HOST="db.xfzdcljwyddhgzcpcifl.supabase.co"
+SUPABASE_JWT_SECRET="F6kSstRARrWynJRz36L1HBMWpEmPW4vHpn5fNREQpT3mRIbHOdwgqBJcrLtIGfdjrimmPXZYwYq60/jpJKqT+Q=="
+NEXT_PUBLIC_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmemRjbGp3eWRkaGd6Y3BjaWZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NDE1MDMsImV4cCI6MjA3NzAxNzUwM30.XTigTHTuWULbBNLf7iulhupMhYM2IxSgm4lzz2SvCvQ"
+POSTGRES_PRISMA_URL="postgres://postgres.xfzdcljwyddhgzcpcifl:lDh26GdHeA6zILfB@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
+POSTGRES_PASSWORD="lDh26GdHeA6zILfB"
+POSTGRES_DATABASE="postgres"
+SUPABASE_URL="https://xfzdcljwyddhgzcpcifl.supabase.co"
+SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmemRjbGp3eWRkaGd6Y3BjaWZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NDE1MDMsImV4cCI6MjA3NzAxNzUwM30.XTigTHTuWULbBNLf7iulhupMhYM2IxSgm4lzz2SvCvQ"
+NEXT_PUBLIC_SUPABASE_URL="https://xfzdcljwyddhgzcpcifl.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmemRjbGp3eWRkaGd6Y3BjaWZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MTQ0MTUwMywiZXhwIjoyMDc3MDE3NTAzfQ.gkQsaUZF2RJehQkZpOX0wAim_2iX_TevboqscYN-MMQ"
+POSTGRES_URL_NON_POOLING="postgres://postgres.xfzdcljwyddhgzcpcifl:lDh26GdHeA6zILfB@aws-1-eu-central-1.pooler.supabase.com:5432/postgres?sslmode=require"
 ```
 
 ⚠️ **IMPORTANT:** 
@@ -467,9 +477,10 @@ END $$;
 ### Pour le Backend (.env)
 ```bash
 # Supabase
-SUPABASE_URL=https://[votre-project-ref].supabase.co
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-SUPABASE_SERVICE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+REACT_APP_SUPABASE_URL=https://xfzdcljwyddhgzcpcifl.supabase.co
+REACT_APP_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmemRjbGp3eWRkaGd6Y3BjaWZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NDE1MDMsImV4cCI6MjA3NzAxNzUwM30.XTigTHTuWULbBNLf7iulhupMhYM2IxSgm4lzz2SvCvQ
+
 
 # App
 CORS_ORIGINS=http://localhost:3000,https://votre-app.vercel.app
