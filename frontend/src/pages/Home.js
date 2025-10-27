@@ -24,7 +24,13 @@ const Home = () => {
   const fetchStats = async () => {
     try {
       const response = await axios.get(`${API}/contact/stats`);
-      setStats(response.data);
+      const data = response.data || {};
+      setStats({
+        totalUsers: data.totalUsers ?? data.total_users ?? 0,
+        totalProfiles: data.totalProfiles ?? data.total_profiles ?? 0,
+        totalViews: data.totalViews ?? data.total_views ?? 0,
+        totalProblems: data.totalProblems ?? data.total_problems ?? 0
+      });
     } catch (error) {
       console.error('Failed to fetch stats:', error);
     }
