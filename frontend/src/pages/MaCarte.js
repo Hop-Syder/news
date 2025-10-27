@@ -391,7 +391,7 @@ const MaCarte = () => {
                   <span className="font-semibold">{profile.rating.toFixed(1)}</span>
                   <span className="text-sm text-gray-500">({profile.review_count} avis)</span>
                 </div>
-*** End Patch
+              )}
               <div className="text-center text-sm text-gray-600 mt-4">
                 Type : {PROFILE_TYPES.find((type) => type.value === profile.profile_type)?.label || 'N/A'}
               </div>
