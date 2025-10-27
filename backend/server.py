@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import get_settings
-from routers import auth, entrepreneurs, contact, storage
+from routers import auth, entrepreneurs, contact, storage, stats
 import logging
 from pathlib import Path
 from dotenv import load_dotenv
@@ -44,6 +44,7 @@ app.include_router(auth.router, prefix="/api")
 app.include_router(entrepreneurs.router, prefix="/api")
 app.include_router(contact.router, prefix="/api")
 app.include_router(storage.router, prefix="/api")
+app.include_router(stats.router, prefix="/api")
 
 
 # Root endpoint
@@ -71,6 +72,7 @@ async def api_root():
             "entrepreneurs": "/api/entrepreneurs",
             "contact": "/api/contact",
             "storage": "/api/storage",
+            "stats": "/api/stats",
             "docs": "/api/docs"
         }
     }

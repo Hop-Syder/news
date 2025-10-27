@@ -5,6 +5,11 @@ const AuthContext = createContext(null);
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+const EMAIL_REDIRECT_TO =
+  process.env.REACT_APP_SUPABASE_EMAIL_REDIRECT_TO ||
+  (typeof window !== 'undefined' && window.location.hostname === 'localhost'
+    ? `${window.location.origin}/auth/callback`
+    : undefined);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -78,15 +83,21 @@ export const AuthProvider = ({ children }) => {
       console.log('🔵 [AUTH] Starting registration with Supabase...');
 
       // Register with Supabase
+      const options = {
+        data: {
+          first_name: firstName,
+          last_name: lastName
+        }
+      };
+
+      if (EMAIL_REDIRECT_TO) {
+        options.emailRedirectTo = EMAIL_REDIRECT_TO;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: {
-          data: {
-            first_name: firstName,
-            last_name: lastName
-          }
-        }
+        options
       });
 
       if (error) throw error;

@@ -12,3 +12,14 @@ POSTGRES_DATABASE="postgres"
 POSTGRES_URL="postgres://postgres.xfzdcljwyddhgzcpcifl:lDh26GdHeA6zILfB@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require&supa=base-pooler.x"
 POSTGRES_PRISMA_URL="postgres://postgres.xfzdcljwyddhgzcpcifl:lDh26GdHeA6zILfB@aws-1-eu-central-1.pooler.supabase.com:6543/postgres?sslmode=require&pgbouncer=true"
 POSTGGO_URL_NON_POOLING="postgres://postgres.xfzdcljwyddhgzcpcifl:lDh26GdHeA6zILfB@aws-1-eu-central-1.pooler.supabase.com:5432/postgres?sslmode=require"
+
+
+# ==========================================
+# SUPABASE CONFIGURATION
+# ==========================================
+
+CORS_ORIGINS="http://localhost:3000,https://news-azure-ten.vercel.app,http://127.0.0.1:3000"
+SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmemRjbGp3eWRkaGd6Y3BjaWZsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE0NDE1MDMsImV4cCI6MjA3NzAxNzUwM30.XTigTHTuWULbBNLf7iulhupMhYM2IxSgm4lzz2SvCvQ"
+SUPABASE_JWT_SECRET="F6kSstRARrWynJRz36L1HBMWpEmPW4vHpn5fNREQpT3mRIbHOdwgqBJcrLtIGfdjrimmPXZYwYq60/jpJKqT+Q=="
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhmemRjbGp3eWRkaGd6Y3BjaWZsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MTQ0MTUwMywiZXhwIjoyMDc3MDE3NTAzfQ.gkQsaUZF2RJehQkZpOX0wAim_2iX_TevboqscYN-MMQ"
+SUPABASE_URL="https://xfzdcljwyddhgzcpcifl.supabase.co"

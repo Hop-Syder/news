@@ -23,7 +23,7 @@ const Home = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${API}/stats`);
+      const response = await axios.get(`${API}/contact/stats`);
       setStats(response.data);
     } catch (error) {
       console.error('Failed to fetch stats:', error);
