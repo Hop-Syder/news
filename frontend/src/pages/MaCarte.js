@@ -38,6 +38,7 @@ const MaCarte = () => {
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [logoUploading, setLogoUploading] = useState(false);
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -269,14 +270,68 @@ const MaCarte = () => {
         { headers }
       );
       setProfile((prev) => ({ ...prev, status: 'draft' }));
-      setSuccess(response.data?.message || 'Profil enregistré en brouillon.');
+    setSuccess(response.data?.message || 'Profil enregistré en brouillon.');
+  } catch (err) {
+    if (err.message === 'AUTH_MISSING') {
+      setError('Votre session a expiré. Veuillez vous reconnecter.');
+    } else {
+      loggerError('handleDraft', err);
+      setError(err.response?.data?.detail || "Impossible de repasser en brouillon.");
+    }
+  }
+};
+
+  const handleLogoUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'];
+    if (!allowedTypes.includes(file.type)) {
+      setError('Format invalide. Formats acceptés : PNG, JPG, JPEG, WEBP, SVG.');
+      event.target.value = '';
+      return;
+    }
+
+    const maxSize = 2 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError('Fichier trop volumineux (max 2 Mo).');
+      event.target.value = '';
+      return;
+    }
+
+    setLogoUploading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const headers = getAuthHeaders();
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+
+      const response = await axios.post(`${API}/storage/upload-logo`, formDataUpload, {
+        headers: {
+          ...headers,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      const url = response.data?.url;
+      if (url) {
+        handleChange('logo_url', url);
+        setSuccess('Logo téléchargé avec succès.');
+      } else {
+        setError("Impossible de récupérer l'URL du logo.");
+      }
     } catch (err) {
       if (err.message === 'AUTH_MISSING') {
         setError('Votre session a expiré. Veuillez vous reconnecter.');
       } else {
-        loggerError('handleDraft', err);
-        setError(err.response?.data?.detail || "Impossible de repasser en brouillon.");
+        loggerError('handleLogoUpload', err);
+        setError(err.response?.data?.detail || "Échec du téléversement du logo.");
       }
+    } finally {
+      setLogoUploading(false);
+      event.target.value = '';
     }
   };
 
@@ -619,23 +674,31 @@ const MaCarte = () => {
                 </div>
 
                 <div>
-                  <Label>Logo / Photo</Label>
+                  <Label>Logo / Photo (PNG, JPG, WEBP, SVG) - 2 Mo max</Label>
                   <div className="flex items-center gap-3">
-                    <Input
-                      value={formData.logo_url}
-                      onChange={(e) => handleChange('logo_url', e.target.value)}
-                      placeholder="https://"
-                    />
+                    <Input type="file" accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml" onChange={handleLogoUpload} disabled={logoUploading} />
                     {formData.logo_url && (
-                      <Button type="button" variant="outline" onClick={() => handleChange('logo_url', '')}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          handleChange('logo_url', '');
+                          setSuccess('');
+                        }}
+                      >
                         <X className="w-4 h-4" />
                       </Button>
                     )}
                   </div>
                   <p className="text-xs text-gray-500 mt-1 flex items-center gap-2">
                     <Upload className="w-3 h-3" />
-                    Collez l'URL de votre logo (hébergé en ligne).
+                    {logoUploading ? 'Téléversement en cours...' : 'Sélectionnez un fichier (2 Mo max). Un lien public sera généré automatiquement.'}
                   </p>
+                  {formData.logo_url && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Logo actuel : <a href={formData.logo_url} target="_blank" rel="noopener noreferrer" className="text-bleu-marine underline">Voir</a>
+                    </p>
+                  )}
                 </div>
               </div>
 

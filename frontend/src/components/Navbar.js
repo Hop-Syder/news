@@ -116,7 +116,13 @@ const Navbar = () => {
                         </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                      <DropdownMenuItem
+                        onSelect={async (event) => {
+                          event.preventDefault();
+                          await handleLogout();
+                        }}
+                        className="text-red-600 cursor-pointer"
+                      >
                         <LogOut className="w-4 h-4 mr-2" />
                         Déconnexion
                       </DropdownMenuItem>
