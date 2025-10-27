@@ -20,7 +20,7 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const Dashboard = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, getAccessToken } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -178,7 +178,17 @@ const Dashboard = () => {
     setError('');
 
     try {
-      await axios.post(`${API}/entrepreneurs`, formData);
+      const accessToken = getAccessToken();
+      if (!accessToken) {
+        setError('Votre session a expiré. Veuillez vous reconnecter.');
+        return;
+      }
+
+      await axios.post(`${API}/entrepreneurs`, formData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
       navigate('/annuaire');
     } catch (error) {
       setError(error.response?.data?.detail || 'Une erreur est survenue');

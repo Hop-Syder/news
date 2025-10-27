@@ -53,6 +53,14 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onSwitchMode }) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
+  const validatePassword = (password) => {
+    const hasUpperCase = /[A-Z]/.test(password);
+    const hasLowerCase = /[a-z]/.test(password);
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?`~]/.test(password);
+    return password.length >= 8 && hasUpperCase && hasLowerCase && hasNumber && hasSpecial;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -65,10 +73,17 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onSwitchMode }) => {
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
-      setLoading(false);
-      return;
+    if (mode === 'register') {
+      if (formData.password.length < 8) {
+        setError('Le mot de passe doit contenir au moins 8 caractères.');
+        setLoading(false);
+        return;
+      }
+      if (!validatePassword(formData.password)) {
+        setError('Le mot de passe doit contenir une majuscule, une minuscule, un chiffre et un caractère spécial.');
+        setLoading(false);
+        return;
+      }
     }
 
     if (mode === 'register') {
