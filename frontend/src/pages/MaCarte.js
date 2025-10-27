@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -80,9 +80,8 @@ const MaCarte = () => {
 
     try {
       const headers = getAuthHeaders();
-      const response = await axios.get(`${API}/entrepreneurs/me`, { headers });
+      const { data } = await axios.get(`${API}/entrepreneurs/me`, { headers });
 
-      const data = response.data;
       setProfile(data);
       setFormData({
         first_name: data.first_name || '',
@@ -103,9 +102,6 @@ const MaCarte = () => {
       setIsFirstCreation(false);
       setEditMode(false);
     } catch (err) {
-      if (err.message === 'AUTH_MISSING') {
-        return;
-      }
       if (err.response?.status === 404) {
         setIsFirstCreation(true);
         setEditMode(true);
@@ -114,78 +110,8 @@ const MaCarte = () => {
           ...prev,
           email: user?.email || ''
         }));
-      } else {
-        setError('Impossible de charger votre profil pour le moment.');
-        loggerError('fetchProfile', err);
-      }
-    } finally {
-      setLoading(false);
-    }
-  }, [API, getAuthHeaders, loggerError, user]);
-
-  useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
-
-  const loggerError = useCallback((label, err) => {
-    console.error(`❌ [MaCarte] ${label}:`, err.response?.data || err.message || err);
-  }, []);
-
-  const getAuthHeaders = useCallback(() => {
-    const token = getAccessToken?.();
-    if (!token) {
-      throw new Error('AUTH_MISSING');
-    }
-    return { Authorization: `Bearer ${token}` };
-  }, [getAccessToken]);
-
-  const fetchProfile = useCallback(async () => {
-    if (!user || !API) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    setError('');
-    setSuccess('');
-
-    try {
-      const headers = getAuthHeaders();
-      const response = await axios.get(`${API}/entrepreneurs/me`, { headers });
-
-      const data = response.data;
-      setProfile(data);
-      setFormData({
-        first_name: data.first_name || '',
-        last_name: data.last_name || '',
-        company_name: data.company_name || '',
-        email: data.email || user?.email || '',
-        phone: data.phone || '',
-        profile_type: data.profile_type || '',
-        activity_name: data.activity_name || '',
-        description: data.description || '',
-        tags: data.tags || [],
-        whatsapp: data.whatsapp || '',
-        website: data.website || '',
-        country_code: data.country_code || '',
-        city: data.city || '',
-        logo_url: data.logo_url || ''
-      });
-      setIsFirstCreation(false);
-      setEditMode(false);
-    } catch (err) {
-      if (err.message === 'AUTH_MISSING') {
-        setLoading(false);
-        return;
-      }
-      if (err.response?.status === 404) {
-        setIsFirstCreation(true);
-        setEditMode(true);
-        setProfile(null);
-        setFormData((prev) => ({
-          ...prev,
-          email: user?.email || ''
-        }));
+      } else if (err.message === 'AUTH_MISSING') {
+        setError('Votre session a expiré. Veuillez vous reconnecter.');
       } else {
         setError('Impossible de charger votre profil pour le moment.');
         loggerError('fetchProfile', err);
@@ -250,8 +176,8 @@ const MaCarte = () => {
     setSuccess('');
 
     try {
-      const payload = { ...formData };
       const headers = getAuthHeaders();
+      const payload = { ...formData };
       let response;
 
       if (isFirstCreation) {
@@ -287,7 +213,11 @@ const MaCarte = () => {
 
     try {
       const headers = getAuthHeaders();
-      const response = await axios.patch(`${API}/entrepreneurs/me/status`, { status: 'published' }, { headers });
+      const response = await axios.patch(
+        `${API}/entrepreneurs/me/status`,
+        { status: 'published' },
+        { headers }
+      );
       setProfile((prev) => ({ ...prev, status: 'published' }));
       setSuccess(response.data?.message || 'Profil publié !');
     } catch (err) {
@@ -310,7 +240,11 @@ const MaCarte = () => {
 
     try {
       const headers = getAuthHeaders();
-      const response = await axios.patch(`${API}/entrepreneurs/me/status`, { status: 'deactivated' }, { headers });
+      const response = await axios.patch(
+        `${API}/entrepreneurs/me/status`,
+        { status: 'deactivated' },
+        { headers }
+      );
       setProfile((prev) => ({ ...prev, status: 'deactivated' }));
       setSuccess(response.data?.message || 'Profil désactivé.');
     } catch (err) {
@@ -329,7 +263,11 @@ const MaCarte = () => {
 
     try {
       const headers = getAuthHeaders();
-      const response = await axios.patch(`${API}/entrepreneurs/me/status`, { status: 'draft' }, { headers });
+      const response = await axios.patch(
+        `${API}/entrepreneurs/me/status`,
+        { status: 'draft' },
+        { headers }
+      );
       setProfile((prev) => ({ ...prev, status: 'draft' }));
       setSuccess(response.data?.message || 'Profil enregistré en brouillon.');
     } catch (err) {
@@ -453,17 +391,16 @@ const MaCarte = () => {
                   <span className="font-semibold">{profile.rating.toFixed(1)}</span>
                   <span className="text-sm text-gray-500">({profile.review_count} avis)</span>
                 </div>
-              )}
-
+*** End Patch
               <div className="text-center text-sm text-gray-600 mt-4">
-                Type : {PROFILE_TYPES.find((pt) => pt.value === profile.profile_type)?.label || 'N/A'}
+                Type : {PROFILE_TYPES.find((type) => type.value === profile.profile_type)?.label || 'N/A'}
               </div>
             </CardContent>
           </Card>
         )}
 
         {!isFirstCreation && !editMode && profile && (
-          <div className="flex flex-wrap gap-4 justify-center mb-10">
+          <div className="flex flex-wrap justify-center gap-4 mb-10">
             <Button onClick={() => setEditMode(true)} className="bg-bleu-marine text-white hover:bg-bleu-marine/90">
               <Edit className="w-4 h-4 mr-2" /> Modifier
             </Button>
@@ -497,7 +434,7 @@ const MaCarte = () => {
                     <AlertCircle className="w-5 h-5 text-white" />
                   </div>
                   <p className="text-red-700 font-semibold">
-                    ⚠️ ATTENTION : ces champs ne pourront plus être modifiés après la première sauvegarde.
+                    ⚠️ Ces champs ne pourront plus être modifiés après la première sauvegarde.
                   </p>
                 </div>
 
@@ -744,8 +681,8 @@ const MaCarte = () => {
               <h3 className="text-lg font-semibold text-bleu-marine">Comment ça marche ?</h3>
               <ol className="space-y-3 text-gray-700">
                 <li>1. Remplissez vos informations obligatoires.</li>
-                <li>2. Enregistrez votre carte – elle sera d'abord en brouillon.</li>
-                <li>3. Publiez-la pour qu’elle apparaisse dans l’annuaire.</li>
+                <li>2. Sauvegardez votre carte – elle sera en brouillon.</li>
+                <li>3. Publiez-la pour la rendre visible dans l'annuaire.</li>
                 <li>4. Vous pouvez la désactiver à tout moment sans la supprimer.</li>
               </ol>
             </CardContent>
