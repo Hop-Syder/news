@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { useAuth, supabase } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,13 +9,30 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
-const AuthModal = ({ isOpen, onClose, mode, onSwitchMode }) => {
-  const { login, register, loginWithGoogle } = useAuth();
+const AuthModal = ({ isOpen, onClose, mode: initialMode, onSwitchMode }) => {
+  const { login, register, loginWithGoogle, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [mode, setMode] = useState(initialMode);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState('');
-  
+  const [successMessage, setSuccessMessage] = useState('');
+
+  useEffect(() => {
+    setMode(initialMode);
+    setError('');
+    setSuccessMessage('');
+  }, [initialMode, isOpen]);
+
+  useEffect(() => {
+    // Redirect user if they are authenticated and the modal is open
+    if (isAuthenticated && isOpen) {
+      console.log('User is authenticated, redirecting...');
+      onClose();
+      navigate(user.has_profile ? '/annuaire' : '/dashboard');
+    }
+  }, [isAuthenticated, user, navigate, onClose, isOpen]);
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -68,23 +85,13 @@ const AuthModal = ({ isOpen, onClose, mode, onSwitchMode }) => {
         formData.lastName
       );
 
-      if (result.success) {
-        onClose();
-        navigate('/dashboard');
-      } else {
+      if (!result.success) {
         setError(result.error);
       }
     } else {
       const result = await login(formData.email, formData.password);
 
-      if (result.success) {
-        onClose();
-        if (result.user.hasProfile) {
-          navigate('/annuaire');
-        } else {
-          navigate('/dashboard');
-        }
-      } else {
+      if (!result.success) {
         setError(result.error);
       }
     }
@@ -98,14 +105,7 @@ const AuthModal = ({ isOpen, onClose, mode, onSwitchMode }) => {
 
     const result = await loginWithGoogle();
 
-    if (result.success) {
-      onClose();
-      if (result.user.hasProfile) {
-        navigate('/annuaire');
-      } else {
-        navigate('/dashboard');
-      }
-    } else {
+    if (!result.success) {
       setError(result.error);
     }
 
@@ -128,7 +128,7 @@ const AuthModal = ({ isOpen, onClose, mode, onSwitchMode }) => {
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-bleu-marine">
+          <DialogTitle className="text-2xl font-bold text-center text-bleu-marine">
             {mode === 'login' ? 'Connexion' : 'Créer un compte'}
           </DialogTitle>
         </DialogHeader>
@@ -137,6 +137,11 @@ const AuthModal = ({ isOpen, onClose, mode, onSwitchMode }) => {
           {error && (
             <Alert variant="destructive">
               <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+          {successMessage && (
+            <Alert variant="default" className="bg-green-100 border-green-300 text-green-800">
+              <AlertDescription>{successMessage}</AlertDescription>
             </Alert>
           )}
 
@@ -192,25 +197,25 @@ const AuthModal = ({ isOpen, onClose, mode, onSwitchMode }) => {
           </div>
 
           {mode === 'register' && (
-  <div>
-    <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-    <Input
-      id="confirmPassword"
-      name="confirmPassword"
-      type="password"
-      value={formData.confirmPassword}
-      onChange={handleChange}
-      required={mode === 'register'}
-      placeholder="••••••••"
-      autoComplete="new-password"
-    />
-    {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
-      <p className="text-xs text-red-500 mt-1">
-        Les mots de passe ne correspondent pas
-      </p>
-    )}
-  </div>
-)}
+            <div>
+              <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
+              <Input
+                id="confirmPassword"
+                name="confirmPassword"
+                type="password"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                required={mode === 'register'}
+                placeholder="••••••••"
+                autoComplete="new-password"
+              />
+              {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                <p className="text-xs text-red-500 mt-1">
+                  Les mots de passe ne correspondent pas
+                </p>
+              )}
+            </div>
+          )}
 
 
           <Button
@@ -267,7 +272,7 @@ const AuthModal = ({ isOpen, onClose, mode, onSwitchMode }) => {
                 Pas encore de compte ?{' '}
                 <button
                   type="button"
-                  onClick={() => onSwitchMode('register')}
+                  onClick={() => setMode('register')}
                   className="text-jaune-soleil hover:underline font-medium"
                 >
                   Inscrivez-vous
@@ -278,7 +283,7 @@ const AuthModal = ({ isOpen, onClose, mode, onSwitchMode }) => {
                 Déjà un compte ?{' '}
                 <button
                   type="button"
-                  onClick={() => onSwitchMode('login')}
+                  onClick={() => setMode('login')}
                   className="text-jaune-soleil hover:underline font-medium"
                 >
                   Connectez-vous
