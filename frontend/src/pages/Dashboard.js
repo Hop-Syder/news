@@ -14,16 +14,16 @@ import { Progress } from '@/components/ui/progress';
 import { COUNTRIES, getCountryCities } from '@/data/countries';
 import { PROFILE_TYPES } from '@/data/profileTypes';
 import { AVAILABLE_TAGS, CATEGORY_NAMES, TAGS_BY_CATEGORY } from '@/data/tags';
-import { ChevronLeft, ChevronRight, CheckCircle2, Upload, X, Search } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CheckCircle2, Upload, X, Search, EyeOff } from 'lucide-react';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 const Dashboard = () => {
-  const { user, loading: authLoading, getAccessToken } = useAuth();
+  const { user, session, loading: authLoading, getAccessToken } = useAuth();
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState('');
   
   const [formData, setFormData] = useState({
@@ -43,10 +43,56 @@ const Dashboard = () => {
     website: '',
   });
 
-  const [tagInput, setTagInput] = useState('');
   const [logoPreview, setLogoPreview] = useState('');
   const [tagSearchQuery, setTagSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [saving, setSaving] = useState(false);
+  const [statusMessage, setStatusMessage] = useState('');
+  const [statusVariant, setStatusVariant] = useState('success');
+  const [lastSavedAt, setLastSavedAt] = useState(null);
+  const [profileId, setProfileId] = useState(null);
+  const [isPublished, setIsPublished] = useState(false);
+  const [draftApplied, setDraftApplied] = useState(false);
+
+  const buildPayload = () => ({
+    profile_type: formData.profileType,
+    first_name: formData.firstName,
+    last_name: formData.lastName,
+    company_name: formData.companyName || null,
+    activity_name: formData.activityName || null,
+    description: formData.description,
+    tags: formData.tags,
+    phone: formData.phone,
+    whatsapp: formData.whatsapp,
+    email: formData.email,
+    country_code: formData.location ? formData.location.toUpperCase() : '',
+    city: formData.city,
+    website: formData.website || null,
+    logo_url: formData.logo || null,
+    portfolio: []
+  });
+
+  const formatLastSavedLabel = (value) => {
+    if (!value) return '';
+    try {
+      return new Date(value).toLocaleString('fr-FR', {
+        dateStyle: 'short',
+        timeStyle: 'short'
+      });
+    } catch (error) {
+      return '';
+    }
+  };
+
+  const getStatusAlertClasses = () => {
+    if (statusVariant === 'info') {
+      return 'mb-6 bg-blue-100 border-blue-300 text-blue-800';
+    }
+    if (statusVariant === 'warning') {
+      return 'mb-6 bg-yellow-100 border-yellow-300 text-yellow-800';
+    }
+    return 'mb-6 bg-green-100 border-green-300 text-green-800';
+  };
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -57,6 +103,118 @@ const Dashboard = () => {
     }
   }, [user, authLoading, navigate]);
 
+  useEffect(() => {
+    const loadDraft = async () => {
+      if (authLoading || !user || !session?.access_token) {
+        return;
+      }
+
+      try {
+        const { data } = await axios.get(`${API}/entrepreneurs/draft`, {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+
+        if (data?.form_data && Object.keys(data.form_data).length > 0) {
+          const draftData = data.form_data;
+          setFormData(prev => {
+            const next = {
+              ...prev,
+              ...draftData,
+              email: draftData.email || prev.email || user.email || ''
+            };
+
+            if (draftData.location) {
+              next.location = draftData.location;
+              next.city = draftData.city || '';
+            }
+
+            if (!draftData.tags) {
+              next.tags = prev.tags;
+            }
+
+            return next;
+          });
+
+          setLogoPreview(draftData.logo || '');
+          setDraftApplied(true);
+        }
+
+        if (data?.current_step) {
+          const nextStep = Math.min(Math.max(data.current_step, 1), 4);
+          setCurrentStep(nextStep);
+        }
+
+        if (data?.updated_at) {
+          setLastSavedAt(data.updated_at);
+        }
+      } catch (error) {
+        console.error('Failed to load entrepreneur draft:', error);
+      }
+    };
+
+    loadDraft();
+  }, [authLoading, user, session]);
+
+  useEffect(() => {
+    const loadPublishedProfile = async () => {
+      if (authLoading || !user || !session?.access_token) {
+        return;
+      }
+
+      try {
+        const { data } = await axios.get(`${API}/entrepreneurs/me`, {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
+
+        if (data) {
+          setProfileId(data.id);
+          setIsPublished(Boolean(data.is_active));
+
+          if (!draftApplied) {
+            setFormData(prev => ({
+              ...prev,
+              profileType: data.profile_type || '',
+              firstName: data.first_name || '',
+              lastName: data.last_name || '',
+              companyName: data.company_name || '',
+              activityName: data.activity_name || '',
+              description: data.description || '',
+              tags: Array.isArray(data.tags) ? data.tags : [],
+              phone: data.phone || '',
+              whatsapp: data.whatsapp || '',
+              email: data.email || prev.email || user.email || '',
+              location: data.country_code || '',
+              city: data.city || '',
+              website: data.website || '',
+              logo: data.logo_url || ''
+            }));
+
+            setLogoPreview(data.logo_url || '');
+          }
+
+          if (data.updated_at) {
+            setLastSavedAt(data.updated_at);
+          }
+
+          if (data.is_active === false && !statusMessage) {
+            setStatusVariant('warning');
+            setStatusMessage('Ce profil est hors ligne. Publiez-le pour le rendre visible dans l\'annuaire.');
+          }
+        }
+      } catch (error) {
+        if (error.response?.status !== 404) {
+          console.error('Failed to load published profile:', error);
+        }
+      }
+    };
+
+    loadPublishedProfile();
+  }, [authLoading, user, session, draftApplied]);
+
   const handleChange = (name, value) => {
     setFormData(prev => ({
       ...prev,
@@ -64,6 +222,7 @@ const Dashboard = () => {
       ...(name === 'location' ? { city: '' } : {})
     }));
     setError('');
+    setStatusMessage('');
   };
 
   const handleLogoUpload = (e) => {
@@ -73,7 +232,7 @@ const Dashboard = () => {
         setError('Le fichier est trop volumineux (max 2MB)');
         return;
       }
-      
+
       const reader = new FileReader();
       reader.onloadend = () => {
         setLogoPreview(reader.result);
@@ -81,11 +240,13 @@ const Dashboard = () => {
       };
       reader.readAsDataURL(file);
     }
+    setStatusMessage('');
   };
 
   const removeLogo = () => {
     setLogoPreview('');
     setFormData(prev => ({ ...prev, logo: '' }));
+    setStatusMessage('');
   };
 
   const addTag = (tagValue) => {
@@ -94,6 +255,7 @@ const Dashboard = () => {
         ...prev,
         tags: [...prev.tags, tagValue]
       }));
+      setStatusMessage('');
     }
   };
 
@@ -102,6 +264,46 @@ const Dashboard = () => {
       ...prev,
       tags: prev.tags.filter(t => t !== tagValue)
     }));
+    setStatusMessage('');
+  };
+
+  const handleSaveDraft = async () => {
+    setError('');
+    setStatusMessage('');
+
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      setError('Votre session a expiré. Veuillez vous reconnecter.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const payload = {
+        form_data: formData,
+        current_step: currentStep
+      };
+
+      const { data } = await axios.put(`${API}/entrepreneurs/draft`, payload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`
+        }
+      });
+
+      setStatusVariant('success');
+      setStatusMessage('Brouillon enregistré avec succès.');
+      if (data?.updated_at) {
+        setLastSavedAt(data.updated_at);
+      } else {
+        setLastSavedAt(new Date().toISOString());
+      }
+      setDraftApplied(true);
+    } catch (error) {
+      console.error('Save draft error:', error);
+      setError(error.response?.data?.detail || 'Impossible de sauvegarder le brouillon');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const filteredTags = () => {
@@ -171,29 +373,102 @@ const Dashboard = () => {
     setError('');
   };
 
-  const handleSubmit = async () => {
+  const handlePublish = async () => {
     if (!validateStep()) return;
-    
-    setLoading(true);
+
     setError('');
+    setStatusMessage('');
+
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      setError('Votre session a expiré. Veuillez vous reconnecter.');
+      return;
+    }
+
+    setProcessing(true);
 
     try {
-      const accessToken = getAccessToken();
-      if (!accessToken) {
-        setError('Votre session a expiré. Veuillez vous reconnecter.');
-        return;
+      const payload = {
+        ...buildPayload(),
+        is_active: true
+      };
+
+      let response;
+      if (profileId) {
+        response = await axios.put(`${API}/entrepreneurs/${profileId}`, payload, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
+      } else {
+        response = await axios.post(`${API}/entrepreneurs`, payload, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
       }
 
-      await axios.post(`${API}/entrepreneurs`, formData, {
+      const data = response?.data;
+      if (data?.id) {
+        setProfileId(data.id);
+      }
+
+      setIsPublished(true);
+      setStatusVariant('success');
+      setStatusMessage('Profil publié avec succès. Votre carte est visible dans l\'annuaire.');
+      setLastSavedAt(data?.updated_at || new Date().toISOString());
+
+      try {
+        await axios.delete(`${API}/entrepreneurs/draft`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
+        setDraftApplied(false);
+      } catch (draftError) {
+        console.warn('Unable to clear draft after publish:', draftError);
+      }
+    } catch (error) {
+      console.error('Publish error:', error);
+      setError(error.response?.data?.detail || 'Une erreur est survenue lors de la publication');
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleUnpublish = async () => {
+    if (!profileId) {
+      setError('Aucun profil publié à dépublier pour le moment.');
+      return;
+    }
+
+    setError('');
+    setStatusMessage('');
+
+    const accessToken = getAccessToken();
+    if (!accessToken) {
+      setError('Votre session a expiré. Veuillez vous reconnecter.');
+      return;
+    }
+
+    setProcessing(true);
+
+    try {
+      const { data } = await axios.put(`${API}/entrepreneurs/${profileId}`, { is_active: false }, {
         headers: {
           Authorization: `Bearer ${accessToken}`
         }
       });
-      navigate('/annuaire');
+
+      setIsPublished(false);
+      setStatusVariant('warning');
+      setStatusMessage('Profil dépublié. Votre carte est maintenant masquée dans l\'annuaire.');
+      setLastSavedAt(data?.updated_at || new Date().toISOString());
     } catch (error) {
-      setError(error.response?.data?.detail || 'Une erreur est survenue');
+      console.error('Unpublish error:', error);
+      setError(error.response?.data?.detail || 'Impossible de dépublier le profil');
     } finally {
-      setLoading(false);
+      setProcessing(false);
     }
   };
 
@@ -238,6 +513,12 @@ const Dashboard = () => {
             {error && (
               <Alert variant="destructive" className="mb-6">
                 <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {statusMessage && (
+              <Alert variant="default" className={getStatusAlertClasses()}>
+                <AlertDescription>{statusMessage}</AlertDescription>
               </Alert>
             )}
 
@@ -565,8 +846,26 @@ const Dashboard = () => {
                   Prévisualisation de votre profil
                 </h2>
 
-                <Card className="border-2 border-jaune-soleil">
+                <Card
+                  className={`border-2 ${
+                    isPublished
+                      ? 'border-jaune-soleil'
+                      : 'border-gray-300 bg-gray-50'
+                  }`}
+                >
                   <CardContent className="p-6">
+                    <div className="flex justify-center mb-4">
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold ${
+                          isPublished
+                            ? 'bg-vert-emeraude/10 text-vert-emeraude'
+                            : 'bg-gray-200 text-gray-600'
+                        }`}
+                      >
+                        {isPublished ? 'Statut : En ligne' : 'Statut : Désactivé'}
+                      </span>
+                    </div>
+
                     <div className="flex justify-center mb-4">
                       {logoPreview ? (
                         <img
@@ -612,6 +911,11 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-600 text-center">
                         <strong>Contacts masqués:</strong> Visibles après clic
                       </p>
+                      {!isPublished && (
+                        <p className="text-sm text-red-500 text-center font-semibold">
+                          Ce profil est hors ligne et n'apparaît pas dans l'annuaire.
+                        </p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -625,38 +929,67 @@ const Dashboard = () => {
             )}
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t">
-              {currentStep > 1 && (
-                <Button
-                  onClick={prevStep}
-                  variant="outline"
-                  className="border-bleu-marine text-bleu-marine"
-                >
-                  <ChevronLeft className="w-4 h-4 mr-2" />
-                  Précédent
-                </Button>
-              )}
+            <div className="flex flex-wrap items-center gap-3 justify-between mt-8 pt-6 border-t">
+              <div>
+                {currentStep > 1 && (
+                  <Button
+                    onClick={prevStep}
+                    variant="outline"
+                    className="border-bleu-marine text-bleu-marine"
+                  >
+                    <ChevronLeft className="w-4 h-4 mr-2" />
+                    Précédent
+                  </Button>
+                )}
+              </div>
 
-              {currentStep < 4 ? (
+              <div className="flex gap-3 ml-auto">
                 <Button
-                  onClick={nextStep}
-                  className="ml-auto bg-jaune-soleil text-bleu-marine hover:bg-jaune-soleil/90"
+                  onClick={handleSaveDraft}
+                  variant="outline"
+                  disabled={saving}
+                  className="border-jaune-soleil text-bleu-marine"
                 >
-                  Suivant
-                  <ChevronRight className="w-4 h-4 ml-2" />
+                  {saving ? 'Sauvegarde...' : 'Sauvegarder'}
                 </Button>
-              ) : (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={loading}
-                  className="ml-auto bg-vert-emeraude text-white hover:bg-vert-emeraude/90"
-                  data-testid="publish-profile-btn"
-                >
-                  {loading ? 'Publication...' : 'Publier mon profil'}
-                  <CheckCircle2 className="w-4 h-4 ml-2" />
-                </Button>
-              )}
+
+                {currentStep < 4 ? (
+                  <Button
+                    onClick={nextStep}
+                    className="bg-jaune-soleil text-bleu-marine hover:bg-jaune-soleil/90"
+                  >
+                    Suivant
+                    <ChevronRight className="w-4 h-4 ml-2" />
+                  </Button>
+                ) : (
+                  <Button
+                    onClick={isPublished ? handleUnpublish : handlePublish}
+                    disabled={processing || (isPublished && !profileId)}
+                    className={
+                      isPublished
+                        ? 'bg-red-500 text-white hover:bg-red-600'
+                        : 'bg-vert-emeraude text-white hover:bg-vert-emeraude/90'
+                    }
+                    data-testid="publish-profile-btn"
+                  >
+                    {processing
+                      ? (isPublished ? 'Dépublication...' : 'Publication...')
+                      : (isPublished ? 'Dépublier mon profil' : 'Publier mon profil')}
+                    {isPublished ? (
+                      <EyeOff className="w-4 h-4 ml-2" />
+                    ) : (
+                      <CheckCircle2 className="w-4 h-4 ml-2" />
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
+
+            {lastSavedAt && (
+              <p className="text-xs text-gray-500 mt-3 text-right">
+                Dernière sauvegarde : {formatLastSavedLabel(lastSavedAt)}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>

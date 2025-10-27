@@ -1,6 +1,14 @@
-from fastapi import APIRouter, HTTPException, Depends, Query, status
+from fastapi import APIRouter, HTTPException, Depends, Query, status, Response
 from typing import List, Optional
-from models.entrepreneur import EntrepreneurCreate, EntrepreneurUpdate, EntrepreneurPublic, EntrepreneurFull, EntrepreneurContactInfo
+from models.entrepreneur import (
+    EntrepreneurCreate,
+    EntrepreneurUpdate,
+    EntrepreneurPublic,
+    EntrepreneurFull,
+    EntrepreneurContactInfo,
+    EntrepreneurDraftPayload,
+    EntrepreneurDraftResponse
+)
 from services.supabase_client import get_supabase_admin
 from dependencies import get_current_user
 from supabase import Client
@@ -8,6 +16,87 @@ import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/entrepreneurs", tags=["Entrepreneurs"])
+
+
+@router.get("/draft", response_model=EntrepreneurDraftResponse)
+async def get_entrepreneur_draft(
+    current_user: dict = Depends(get_current_user),
+    supabase: Client = Depends(get_supabase_admin)
+):
+    try:
+        result = supabase.table('entrepreneur_drafts') \
+            .select('form_data, current_step, updated_at') \
+            .eq('user_id', current_user['id']) \
+            .execute()
+
+        if result.data:
+            draft = result.data[0]
+            return {
+                "form_data": draft.get('form_data', {}),
+                "current_step": draft.get('current_step', 1),
+                "updated_at": draft.get('updated_at')
+            }
+
+        return {"form_data": {}, "current_step": 1, "updated_at": None}
+    except Exception as e:
+        logger.error(f"Get entrepreneur draft error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to load entrepreneur draft"
+        )
+
+
+@router.put("/draft", response_model=EntrepreneurDraftResponse)
+async def save_entrepreneur_draft(
+    draft: EntrepreneurDraftPayload,
+    current_user: dict = Depends(get_current_user),
+    supabase: Client = Depends(get_supabase_admin)
+):
+    try:
+        payload = {
+            "user_id": current_user['id'],
+            "form_data": draft.form_data,
+            "current_step": draft.current_step
+        }
+
+        result = supabase.table('entrepreneur_drafts') \
+            .upsert(payload, returning='representation') \
+            .execute()
+
+        if result.data:
+            saved = result.data[0]
+            return {
+                "form_data": saved.get('form_data', {}),
+                "current_step": saved.get('current_step', draft.current_step),
+                "updated_at": saved.get('updated_at')
+            }
+
+        return {"form_data": draft.form_data, "current_step": draft.current_step, "updated_at": None}
+    except Exception as e:
+        logger.error(f"Save entrepreneur draft error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save entrepreneur draft"
+        )
+
+
+@router.delete("/draft", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_entrepreneur_draft(
+    current_user: dict = Depends(get_current_user),
+    supabase: Client = Depends(get_supabase_admin)
+):
+    try:
+        supabase.table('entrepreneur_drafts') \
+            .delete() \
+            .eq('user_id', current_user['id']) \
+            .execute()
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except Exception as e:
+        logger.error(f"Delete entrepreneur draft error: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete entrepreneur draft"
+        )
 
 
 @router.post("", response_model=EntrepreneurFull, status_code=status.HTTP_201_CREATED)
@@ -18,6 +107,7 @@ async def create_entrepreneur(entrepreneur_data: EntrepreneurCreate, current_use
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already has an entrepreneur profile")
         entrepreneur_dict = entrepreneur_data.model_dump()
         entrepreneur_dict['user_id'] = current_user['id']
+        entrepreneur_dict['is_active'] = True
         result = supabase.table('entrepreneurs').insert(entrepreneur_dict).execute()
         if not result.data:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create entrepreneur profile")

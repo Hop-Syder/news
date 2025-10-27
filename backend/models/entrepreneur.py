@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
-from typing import List, Optional, Literal
+from typing import List, Optional, Literal, Dict, Any
 from datetime import datetime
 
 
@@ -47,6 +47,7 @@ class EntrepreneurBase(BaseModel):
 class EntrepreneurCreate(EntrepreneurBase):
     """Schema for creating entrepreneur profile"""
     logo_url: Optional[str] = None
+    is_active: bool = True
 
 
 class EntrepreneurUpdate(BaseModel):
@@ -69,6 +70,7 @@ class EntrepreneurUpdate(BaseModel):
     website: Optional[str] = Field(None, max_length=500)
     portfolio: Optional[List[PortfolioItem]] = None
     logo_url: Optional[str] = None
+    is_active: Optional[bool] = None
 
 
 class EntrepreneurPublic(BaseModel):
@@ -89,6 +91,7 @@ class EntrepreneurPublic(BaseModel):
     rating: float
     review_count: int
     is_premium: bool
+    is_active: bool
     created_at: datetime
     updated_at: datetime
 
@@ -115,3 +118,14 @@ class EntrepreneurListResponse(BaseModel):
     count: int
     page: int
     page_size: int
+
+
+class EntrepreneurDraftPayload(BaseModel):
+    """Payload for saving entrepreneur draft progress"""
+    form_data: Dict[str, Any]
+    current_step: int = 1
+
+
+class EntrepreneurDraftResponse(EntrepreneurDraftPayload):
+    """Response model for entrepreneur draft"""
+    updated_at: Optional[datetime] = None

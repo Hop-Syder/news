@@ -168,15 +168,18 @@ CREATE TABLE IF NOT EXISTS public.entrepreneurs (
     
     -- Portfolio (JSONB)
     portfolio JSONB DEFAULT '[]',
-    
+
     -- Notation
     rating DECIMAL(3,2) DEFAULT 0.0 CHECK (rating >= 0 AND rating <= 5),
     review_count INTEGER DEFAULT 0,
-    
+
     -- Premium
     is_premium BOOLEAN DEFAULT FALSE,
     premium_until TIMESTAMPTZ,
-    
+
+    -- Publication
+    is_active BOOLEAN DEFAULT TRUE,
+
     -- Timestamps
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -199,6 +202,22 @@ USING GIN(to_tsvector('french',
     COALESCE(activity_name, '') || ' ' || 
     COALESCE(description, '')
 ));
+
+-- ==========================================
+-- TABLE: public.entrepreneur_drafts
+-- ==========================================
+CREATE TABLE IF NOT EXISTS public.entrepreneur_drafts (
+    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    form_data JSONB NOT NULL DEFAULT '{}'::jsonb,
+    current_step INTEGER NOT NULL DEFAULT 1,
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+DROP TRIGGER IF EXISTS update_entrepreneur_drafts_updated_at ON public.entrepreneur_drafts;
+CREATE TRIGGER update_entrepreneur_drafts_updated_at
+    BEFORE UPDATE ON public.entrepreneur_drafts
+    FOR EACH ROW
+    EXECUTE FUNCTION public.set_current_timestamp_updated_at();
 
 -- ==========================================
 -- TABLE: public.contact_messages
@@ -285,9 +304,11 @@ SELECT
     rating,
     review_count,
     is_premium,
+    is_active,
     created_at,
     updated_at
-FROM public.entrepreneurs;
+FROM public.entrepreneurs
+WHERE is_active IS TRUE;
 
 -- ==========================================
 -- FUNCTION: Récupérer contacts (protégé)
@@ -319,6 +340,7 @@ END $$;
 2. Vous devriez voir:
    - ✅ user_profiles
    - ✅ entrepreneurs
+   - ✅ entrepreneur_drafts
    - ✅ contact_messages
 
 ---
@@ -380,6 +402,23 @@ CREATE POLICY "entrepreneurs_delete" ON public.entrepreneurs
     FOR DELETE USING (auth.uid() = user_id);
 
 -- ==========================================
+-- RLS: entrepreneur_drafts
+-- ==========================================
+ALTER TABLE public.entrepreneur_drafts ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "entrepreneur_drafts_select" ON public.entrepreneur_drafts;
+CREATE POLICY "entrepreneur_drafts_select" ON public.entrepreneur_drafts
+    FOR SELECT USING (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "entrepreneur_drafts_upsert" ON public.entrepreneur_drafts;
+CREATE POLICY "entrepreneur_drafts_upsert" ON public.entrepreneur_drafts
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+DROP POLICY IF EXISTS "entrepreneur_drafts_update" ON public.entrepreneur_drafts;
+CREATE POLICY "entrepreneur_drafts_update" ON public.entrepreneur_drafts
+    FOR UPDATE USING (auth.uid() = user_id);
+
+-- ==========================================
 -- RLS: contact_messages
 -- ==========================================
 ALTER TABLE public.contact_messages ENABLE ROW LEVEL SECURITY;
@@ -400,6 +439,7 @@ BEGIN
     RAISE NOTICE '🔐 RLS configuré avec succès!';
     RAISE NOTICE '✅ user_profiles: RLS actif';
     RAISE NOTICE '✅ entrepreneurs: RLS actif';
+    RAISE NOTICE '✅ entrepreneur_drafts: RLS actif';
     RAISE NOTICE '✅ contact_messages: RLS actif';
 END $$;
 ```
