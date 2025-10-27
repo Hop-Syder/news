@@ -217,11 +217,11 @@ const Annuaire = () => {
             <Card
               key={entrepreneur.id}
               className={`hover:shadow-xl transition-shadow duration-300 relative ${
-                entrepreneur.isPremium ? 'ring-2 ring-jaune-soleil' : ''
+                entrepreneur.is_premium ? 'ring-2 ring-jaune-soleil' : ''
               }`}
               data-testid="entrepreneur-card"
             >
-              {entrepreneur.isPremium && (
+              {entrepreneur.is_premium && (
                 <div className="absolute top-2 right-2">
                   <Badge className="bg-jaune-soleil text-bleu-marine">
                     <Crown className="w-3 h-3 mr-1" />
@@ -232,15 +232,15 @@ const Annuaire = () => {
               <CardContent className="p-6">
                 {/* Logo/Avatar */}
                 <div className="flex justify-center mb-4">
-                  {entrepreneur.logo ? (
+                  {entrepreneur.logo_url ? (
                     <img
-                      src={entrepreneur.logo}
-                      alt={entrepreneur.companyName || entrepreneur.firstName}
+                      src={entrepreneur.logo_url}
+                      alt={entrepreneur.company_name || `${entrepreneur.first_name || ''} ${entrepreneur.last_name || ''}`.trim() || 'Logo'}
                       className="w-20 h-20 rounded-full object-cover"
                     />
                   ) : (
                     <div className="w-20 h-20 rounded-full bg-jaune-soleil flex items-center justify-center text-3xl font-bold text-bleu-marine">
-                      {(entrepreneur.companyName || entrepreneur.firstName || 'U').charAt(0)}
+                      {(entrepreneur.company_name || entrepreneur.first_name || 'U').charAt(0)}
                     </div>
                   )}
                 </div>
@@ -248,25 +248,25 @@ const Annuaire = () => {
                 {/* Info */}
                 <div className="text-center mb-4">
                   <h3 className="text-xl font-bold text-bleu-marine mb-1">
-                    {entrepreneur.companyName || `${entrepreneur.firstName} ${entrepreneur.lastName}`}
+                    {entrepreneur.company_name || `${entrepreneur.first_name || ''} ${entrepreneur.last_name || ''}`.trim() || 'Profil entrepreneur'}
                   </h3>
-                  {entrepreneur.activityName && (
+                  {entrepreneur.activity_name && (
                     <p className="text-sm text-gray-600 mb-2">
-                      {entrepreneur.activityName}
+                      {entrepreneur.activity_name}
                     </p>
                   )}
                   <div className="flex items-center justify-center text-sm text-gray-500 mb-2">
                     <MapPin className="w-4 h-4 mr-1" />
-                    {entrepreneur.city}, {COUNTRIES[entrepreneur.location]?.name}
+                    {entrepreneur.city}, {COUNTRIES[entrepreneur.country_code]?.name || entrepreneur.country_code}
                   </div>
-                  <p className="text-sm text-gray-700 line-clamp-2">
+                  <p className="text-sm text-gray-700">
                     {entrepreneur.description}
                   </p>
                 </div>
 
                 {/* Tags */}
                 <div className="flex flex-wrap gap-2 justify-center mb-4">
-                  {entrepreneur.tags.slice(0, 3).map((tag, index) => (
+                  {(entrepreneur.tags || []).slice(0, 3).map((tag, index) => (
                     <Badge key={index} variant="secondary" className="text-xs">
                       {tag}
                     </Badge>
@@ -281,7 +281,7 @@ const Annuaire = () => {
                       {entrepreneur.rating.toFixed(1)}
                     </span>
                     <span className="text-xs text-gray-500 ml-1">
-                      ({entrepreneur.reviewCount})
+                      ({entrepreneur.review_count || 0})
                     </span>
                   </div>
                 )}
