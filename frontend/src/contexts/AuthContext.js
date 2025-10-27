@@ -28,7 +28,7 @@ export const AuthProvider = ({ children }) => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔵 [AUTH] Auth state changed:', event);
       setSession(session);
-      
+
       if (session?.user) {
         await loadUserProfile(session.user);
       } else {
@@ -76,7 +76,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (email, password, firstName, lastName) => {
     try {
       console.log('🔵 [AUTH] Starting registration with Supabase...');
-      
+
       // Register with Supabase
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -85,8 +85,7 @@ export const AuthProvider = ({ children }) => {
           data: {
             first_name: firstName,
             last_name: lastName
-          },
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          }
         }
       });
 
@@ -101,8 +100,8 @@ export const AuthProvider = ({ children }) => {
       // User profile is created automatically by database trigger
       // Session and user are set by onAuthStateChange listener
 
-      return { 
-        success: true, 
+      return {
+        success: true,
         user: {
           id: data.user.id,
           email: data.user.email,
@@ -123,7 +122,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       console.log('🔵 [AUTH] Starting login with Supabase...');
-      
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -142,7 +141,7 @@ export const AuthProvider = ({ children }) => {
       return { success: true };
     } catch (error) {
       console.error('❌ [AUTH] Login error:', error);
-      
+
       // User-friendly error messages
       let errorMessage = 'Login failed';
       if (error.message.includes('Invalid login credentials')) {
@@ -150,7 +149,7 @@ export const AuthProvider = ({ children }) => {
       } else if (error.message.includes('Email not confirmed')) {
         errorMessage = 'Veuillez confirmer votre email';
       }
-      
+
       return {
         success: false,
         error: errorMessage
@@ -161,7 +160,7 @@ export const AuthProvider = ({ children }) => {
   const loginWithGoogle = async () => {
     try {
       console.log('🔵 [AUTH] Starting Google Sign-In...');
-      
+
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -176,7 +175,7 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
 
       console.log('✅ [AUTH] Google OAuth initiated');
-      
+
       // OAuth flow will redirect to Google
       // User will be set when they return via onAuthStateChange
 
@@ -193,14 +192,14 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       console.log('🔵 [AUTH] Logging out...');
-      
+
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) throw error;
 
       setUser(null);
       setSession(null);
-      
+
       console.log('✅ [AUTH] Logout successful');
     } catch (error) {
       console.error('❌ [AUTH] Logout error:', error);
