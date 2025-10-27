@@ -49,8 +49,8 @@ async def get_stats(supabase: Client = Depends(get_supabase_admin)):
             logger.warning(f"user count error: {_error_message(users_result.error)}")
         total_users = _extract_count(users_result)
 
-        # Profils publiés = statuts "published"
-        published_result = supabase.table('entrepreneurs').select('id', head=True, count='exact').eq('status', 'published').execute()
+        # Profils publiés = vue publique (status filtré à 'published')
+        published_result = supabase.table('entrepreneurs_public').select('id', head=True, count='exact').execute()
         if getattr(published_result, "error", None):
             message = _error_message(published_result.error)
             logger.error(f"Entrepreneur count error: {message}")
