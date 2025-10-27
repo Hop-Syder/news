@@ -52,7 +52,7 @@ const MonProfil = () => {
     };
 
     fetchProfileId();
-  }, [getAccessToken]);
+  }, [getAccessToken, API]);
 
   const handlePasswordChange = async (event) => {
     event.preventDefault();

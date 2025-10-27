@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -56,45 +56,31 @@ const MaCarte = () => {
     logo_url: ''
   });
 
-  const getAuthHeaders = () => {
+  const loggerError = useCallback((label, err) => {
+    console.error(`❌ [MaCarte] ${label}:`, err.response?.data || err.message || err);
+  }, []);
+
+  const getAuthHeaders = useCallback(() => {
     const token = getAccessToken?.();
     if (!token) {
       throw new Error('AUTH_MISSING');
     }
     return { Authorization: `Bearer ${token}` };
-  };
+  }, [getAccessToken]);
 
-  const loggerError = (label, err) => {
-    console.error(`❌ [MaCarte] ${label}:`, err.response?.data || err.message || err);
-  };
-
-  useEffect(() => {
+  const fetchProfile = useCallback(async () => {
     if (!user || !API) {
       setLoading(false);
       return;
     }
 
-    fetchProfile();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, API]);
-
-  const fetchProfile = async () => {
     setLoading(true);
     setError('');
     setSuccess('');
 
-    let headers;
     try {
-      headers = getAuthHeaders();
-    } catch (authErr) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await axios.get(`${API}/entrepreneurs/me`, {
-        headers
-      });
+      const headers = getAuthHeaders();
+      const response = await axios.get(`${API}/entrepreneurs/me`, { headers });
 
       const data = response.data;
       setProfile(data);
@@ -117,6 +103,9 @@ const MaCarte = () => {
       setIsFirstCreation(false);
       setEditMode(false);
     } catch (err) {
+      if (err.message === 'AUTH_MISSING') {
+        return;
+      }
       if (err.response?.status === 404) {
         setIsFirstCreation(true);
         setEditMode(true);
@@ -125,14 +114,90 @@ const MaCarte = () => {
           ...prev,
           email: user?.email || ''
         }));
-      } else if (err.message) {
+      } else {
         setError('Impossible de charger votre profil pour le moment.');
         loggerError('fetchProfile', err);
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, [API, getAuthHeaders, loggerError, user]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  const loggerError = useCallback((label, err) => {
+    console.error(`❌ [MaCarte] ${label}:`, err.response?.data || err.message || err);
+  }, []);
+
+  const getAuthHeaders = useCallback(() => {
+    const token = getAccessToken?.();
+    if (!token) {
+      throw new Error('AUTH_MISSING');
+    }
+    return { Authorization: `Bearer ${token}` };
+  }, [getAccessToken]);
+
+  const fetchProfile = useCallback(async () => {
+    if (!user || !API) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const headers = getAuthHeaders();
+      const response = await axios.get(`${API}/entrepreneurs/me`, { headers });
+
+      const data = response.data;
+      setProfile(data);
+      setFormData({
+        first_name: data.first_name || '',
+        last_name: data.last_name || '',
+        company_name: data.company_name || '',
+        email: data.email || user?.email || '',
+        phone: data.phone || '',
+        profile_type: data.profile_type || '',
+        activity_name: data.activity_name || '',
+        description: data.description || '',
+        tags: data.tags || [],
+        whatsapp: data.whatsapp || '',
+        website: data.website || '',
+        country_code: data.country_code || '',
+        city: data.city || '',
+        logo_url: data.logo_url || ''
+      });
+      setIsFirstCreation(false);
+      setEditMode(false);
+    } catch (err) {
+      if (err.message === 'AUTH_MISSING') {
+        setLoading(false);
+        return;
+      }
+      if (err.response?.status === 404) {
+        setIsFirstCreation(true);
+        setEditMode(true);
+        setProfile(null);
+        setFormData((prev) => ({
+          ...prev,
+          email: user?.email || ''
+        }));
+      } else {
+        setError('Impossible de charger votre profil pour le moment.');
+        loggerError('fetchProfile', err);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [API, getAuthHeaders, loggerError, user]);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -186,18 +251,15 @@ const MaCarte = () => {
 
     try {
       const payload = { ...formData };
+      const headers = getAuthHeaders();
       let response;
 
       if (isFirstCreation) {
-        response = await axios.post(`${API}/entrepreneurs/me`, payload, {
-          headers: getAuthHeaders()
-        });
+        response = await axios.post(`${API}/entrepreneurs/me`, payload, { headers });
         setIsFirstCreation(false);
         setSuccess('✅ Carte créée avec succès ! Publiez-la pour la rendre visible.');
       } else {
-        response = await axios.put(`${API}/entrepreneurs/me`, payload, {
-          headers: getAuthHeaders()
-        });
+        response = await axios.put(`${API}/entrepreneurs/me`, payload, { headers });
         setSuccess('✅ Modifications sauvegardées avec succès.');
       }
 
@@ -208,8 +270,12 @@ const MaCarte = () => {
 
       setEditMode(false);
     } catch (err) {
-      loggerError('handleSave', err);
-      setError(err.response?.data?.detail || 'Erreur lors de la sauvegarde.');
+      if (err.message === 'AUTH_MISSING') {
+        setError('Votre session a expiré. Veuillez vous reconnecter.');
+      } else {
+        loggerError('handleSave', err);
+        setError(err.response?.data?.detail || 'Erreur lors de la sauvegarde.');
+      }
     } finally {
       setSaving(false);
     }
@@ -220,14 +286,17 @@ const MaCarte = () => {
     setSuccess('');
 
     try {
-      const response = await axios.patch(`${API}/entrepreneurs/me/status`, { status: 'published' }, {
-        headers: getAuthHeaders()
-      });
+      const headers = getAuthHeaders();
+      const response = await axios.patch(`${API}/entrepreneurs/me/status`, { status: 'published' }, { headers });
       setProfile((prev) => ({ ...prev, status: 'published' }));
       setSuccess(response.data?.message || 'Profil publié !');
     } catch (err) {
-      loggerError('handlePublish', err);
-      setError(err.response?.data?.detail || "Impossible de publier le profil.");
+      if (err.message === 'AUTH_MISSING') {
+        setError('Votre session a expiré. Veuillez vous reconnecter.');
+      } else {
+        loggerError('handlePublish', err);
+        setError(err.response?.data?.detail || "Impossible de publier le profil.");
+      }
     }
   };
 
@@ -240,14 +309,17 @@ const MaCarte = () => {
     setSuccess('');
 
     try {
-      const response = await axios.patch(`${API}/entrepreneurs/me/status`, { status: 'deactivated' }, {
-        headers: getAuthHeaders()
-      });
+      const headers = getAuthHeaders();
+      const response = await axios.patch(`${API}/entrepreneurs/me/status`, { status: 'deactivated' }, { headers });
       setProfile((prev) => ({ ...prev, status: 'deactivated' }));
       setSuccess(response.data?.message || 'Profil désactivé.');
     } catch (err) {
-      loggerError('handleDeactivate', err);
-      setError(err.response?.data?.detail || "Impossible de désactiver le profil.");
+      if (err.message === 'AUTH_MISSING') {
+        setError('Votre session a expiré. Veuillez vous reconnecter.');
+      } else {
+        loggerError('handleDeactivate', err);
+        setError(err.response?.data?.detail || "Impossible de désactiver le profil.");
+      }
     }
   };
 
@@ -256,14 +328,17 @@ const MaCarte = () => {
     setSuccess('');
 
     try {
-      const response = await axios.patch(`${API}/entrepreneurs/me/status`, { status: 'draft' }, {
-        headers: getAuthHeaders()
-      });
+      const headers = getAuthHeaders();
+      const response = await axios.patch(`${API}/entrepreneurs/me/status`, { status: 'draft' }, { headers });
       setProfile((prev) => ({ ...prev, status: 'draft' }));
       setSuccess(response.data?.message || 'Profil enregistré en brouillon.');
     } catch (err) {
-      loggerError('handleDraft', err);
-      setError(err.response?.data?.detail || "Impossible de repasser en brouillon.");
+      if (err.message === 'AUTH_MISSING') {
+        setError('Votre session a expiré. Veuillez vous reconnecter.');
+      } else {
+        loggerError('handleDraft', err);
+        setError(err.response?.data?.detail || "Impossible de repasser en brouillon.");
+      }
     }
   };
 
