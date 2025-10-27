@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import get_settings
@@ -106,9 +107,11 @@ async def shutdown_event():
 
 if __name__ == "__main__":
     import uvicorn
+    port = int(os.getenv("PORT", 8001))
+    reload_enabled = settings.ENVIRONMENT.lower() == "development"
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=8001,
-        reload=True
+        port=port,
+        reload=reload_enabled
     )
