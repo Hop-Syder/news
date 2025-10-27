@@ -24,3 +24,6 @@ requests>=2.31.0
 # Cryptography
 cryptography>=42.0.8
 pyjwt>=2.10.1
+
+# File Uploads
+python-multipart>=0.0.9
