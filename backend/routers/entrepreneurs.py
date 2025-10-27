@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, Query, status, Response
-from typing import List, Optional
+from typing import List, Optional, Any, Dict
 from models.entrepreneur import (
     EntrepreneurCreate,
     EntrepreneurUpdate,
@@ -16,6 +16,42 @@ import logging
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/entrepreneurs", tags=["Entrepreneurs"])
+
+MISSING_IS_ACTIVE_MSG = (
+    "Le schéma Supabase ne contient pas la colonne 'is_active'. "
+    "Merci d'appliquer la dernière migration (voir SUPABASE_SETUP.md)."
+)
+
+FALLBACK_PROFILE_COLUMNS = [
+    'id', 'user_id', 'profile_type', 'first_name', 'last_name',
+    'company_name', 'activity_name', 'logo_url', 'description',
+    'tags', 'phone', 'whatsapp', 'email', 'website',
+    'country_code', 'city', 'portfolio', 'rating',
+    'review_count', 'is_premium', 'premium_until',
+    'created_at', 'updated_at'
+]
+
+
+def _error_message(error: Any) -> str:
+    if error is None:
+        return ""
+    if isinstance(error, dict):
+        return str(error.get("message") or error)
+    message = getattr(error, "message", None)
+    if message:
+        return str(message)
+    return str(error)
+
+
+def _is_missing_is_active_error(error: Any) -> bool:
+    message = _error_message(error).lower()
+    return "is_active" in message and ("column" in message or "does not exist" in message or "missing" in message)
+
+
+def _sanitize_profile_payload(data: Dict[str, Any]) -> Dict[str, Any]:
+    sanitized = dict(data)
+    sanitized.setdefault("is_active", True)
+    return sanitized
 
 
 @router.get("/draft", response_model=EntrepreneurDraftResponse)
@@ -105,14 +141,31 @@ async def create_entrepreneur(entrepreneur_data: EntrepreneurCreate, current_use
         existing = supabase.table('entrepreneurs').select('id').eq('user_id', current_user['id']).execute()
         if existing.data:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="User already has an entrepreneur profile")
-        entrepreneur_dict = entrepreneur_data.model_dump()
+        entrepreneur_dict = entrepreneur_data.model_dump(exclude_none=True)
         entrepreneur_dict['user_id'] = current_user['id']
-        entrepreneur_dict['is_active'] = True
+        if entrepreneur_dict.get('is_active') is None:
+            entrepreneur_dict['is_active'] = True
+
         result = supabase.table('entrepreneurs').insert(entrepreneur_dict).execute()
+        error = getattr(result, 'error', None)
+
+        if error and _is_missing_is_active_error(error):
+            logger.warning("'is_active' column missing while creating entrepreneur. Falling back without the flag.")
+            entrepreneur_dict.pop('is_active', None)
+            result = supabase.table('entrepreneurs').insert(entrepreneur_dict).execute()
+            error = getattr(result, 'error', None)
+
+        if error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=_error_message(error) or "Failed to create entrepreneur profile"
+            )
+
         if not result.data:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create entrepreneur profile")
+
         supabase.table('user_profiles').update({'has_profile': True}).eq('user_id', current_user['id']).execute()
-        return result.data[0]
+        return _sanitize_profile_payload(result.data[0])
     except HTTPException:
         raise
     except Exception as e:
@@ -149,7 +202,9 @@ async def list_entrepreneurs(search: Optional[str] = Query(None), country_code: 
             query = query.order('created_at', desc=not ascending)
         query = query.range(offset, offset + limit - 1)
         result = query.execute()
-        return result.data if result.data else []
+        if not result.data:
+            return []
+        return [_sanitize_profile_payload(item) for item in result.data]
     except Exception as e:
         logger.error(f"List entrepreneurs error: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to retrieve entrepreneurs: {str(e)}")
@@ -159,9 +214,32 @@ async def list_entrepreneurs(search: Optional[str] = Query(None), country_code: 
 async def get_my_profile(current_user: dict = Depends(get_current_user), supabase: Client = Depends(get_supabase_admin)):
     try:
         result = supabase.table('entrepreneurs').select('*').eq('user_id', current_user['id']).single().execute()
+        error = getattr(result, 'error', None)
+
+        if error and _is_missing_is_active_error(error):
+            logger.warning("'is_active' column missing while fetching entrepreneur. Falling back without the flag.")
+            fallback_select = ','.join(FALLBACK_PROFILE_COLUMNS)
+            result = supabase.table('entrepreneurs').select(fallback_select).eq('user_id', current_user['id']).single().execute()
+            error = getattr(result, 'error', None)
+            if error:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=_error_message(error) or "Failed to retrieve profile"
+                )
+            if not result.data:
+                raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrepreneur profile not found")
+            return _sanitize_profile_payload(result.data)
+
+        if error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=_error_message(error) or "Failed to retrieve profile"
+            )
+
         if not result.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrepreneur profile not found")
-        return result.data
+
+        return _sanitize_profile_payload(result.data)
     except HTTPException:
         raise
     except Exception as e:
@@ -175,7 +253,7 @@ async def get_entrepreneur(entrepreneur_id: str, supabase: Client = Depends(get_
         result = supabase.table('entrepreneurs_public').select('*').eq('id', entrepreneur_id).single().execute()
         if not result.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrepreneur not found")
-        return result.data
+        return _sanitize_profile_payload(result.data)
     except HTTPException:
         raise
     except Exception as e:
@@ -209,9 +287,22 @@ async def update_entrepreneur(entrepreneur_id: str, entrepreneur_data: Entrepren
         if not update_dict:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
         result = supabase.table('entrepreneurs').update(update_dict).eq('id', entrepreneur_id).execute()
+        error = getattr(result, 'error', None)
+
+        if error and _is_missing_is_active_error(error):
+            logger.warning("'is_active' column missing while updating entrepreneur profile.")
+            raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=MISSING_IS_ACTIVE_MSG)
+
+        if error:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=_error_message(error) or "Failed to update profile"
+            )
+
         if not result.data:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to update profile")
-        return result.data[0]
+
+        return _sanitize_profile_payload(result.data[0])
     except HTTPException:
         raise
     except Exception as e:

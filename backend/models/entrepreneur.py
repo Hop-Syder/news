@@ -47,7 +47,7 @@ class EntrepreneurBase(BaseModel):
 class EntrepreneurCreate(EntrepreneurBase):
     """Schema for creating entrepreneur profile"""
     logo_url: Optional[str] = None
-    is_active: bool = True
+    is_active: Optional[bool] = True
 
 
 class EntrepreneurUpdate(BaseModel):
@@ -91,7 +91,7 @@ class EntrepreneurPublic(BaseModel):
     rating: float
     review_count: int
     is_premium: bool
-    is_active: bool
+    is_active: Optional[bool] = True
     created_at: datetime
     updated_at: datetime
 

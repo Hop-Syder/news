@@ -172,7 +172,7 @@ const Dashboard = () => {
 
         if (data) {
           setProfileId(data.id);
-          setIsPublished(Boolean(data.is_active));
+          setIsPublished(data?.is_active !== false);
 
           if (!draftApplied) {
             setFormData(prev => ({
@@ -200,13 +200,19 @@ const Dashboard = () => {
             setLastSavedAt(data.updated_at);
           }
 
-          if (data.is_active === false && !statusMessage) {
+          if (data?.is_active === false && !statusMessage) {
             setStatusVariant('warning');
             setStatusMessage('Ce profil est hors ligne. Publiez-le pour le rendre visible dans l\'annuaire.');
           }
         }
       } catch (error) {
-        if (error.response?.status !== 404) {
+        const statusCode = error.response?.status;
+        const detail = error.response?.data?.detail;
+
+        if (statusCode === 409) {
+          setStatusVariant('info');
+          setStatusMessage(detail || "Le backend doit être mis à jour (migration manquante) pour gérer la publication/dépublication.");
+        } else if (statusCode !== 404) {
           console.error('Failed to load published profile:', error);
         }
       }
@@ -430,7 +436,15 @@ const Dashboard = () => {
       }
     } catch (error) {
       console.error('Publish error:', error);
-      setError(error.response?.data?.detail || 'Une erreur est survenue lors de la publication');
+      const statusCode = error.response?.status;
+      const detail = error.response?.data?.detail;
+
+      if (statusCode === 409) {
+        setStatusVariant('info');
+        setStatusMessage(detail || "Le backend doit être mis à jour (migration manquante) pour gérer la publication/dépublication.");
+      } else {
+        setError(detail || 'Une erreur est survenue lors de la publication');
+      }
     } finally {
       setProcessing(false);
     }
@@ -466,7 +480,15 @@ const Dashboard = () => {
       setLastSavedAt(data?.updated_at || new Date().toISOString());
     } catch (error) {
       console.error('Unpublish error:', error);
-      setError(error.response?.data?.detail || 'Impossible de dépublier le profil');
+      const statusCode = error.response?.status;
+      const detail = error.response?.data?.detail;
+
+      if (statusCode === 409) {
+        setStatusVariant('info');
+        setStatusMessage(detail || "Le backend doit être mis à jour (migration manquante) pour gérer la publication/dépublication.");
+      } else {
+        setError(detail || 'Impossible de dépublier le profil');
+      }
     } finally {
       setProcessing(false);
     }
