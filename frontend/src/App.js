@@ -7,6 +7,7 @@ import Home from "@/pages/Home";
 import Annuaire from "@/pages/Annuaire";
 import Dashboard from "@/pages/Dashboard";
 import Contact from "@/pages/Contact";
+import EmailConfirmation from "@/pages/EmailConfirmation";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
               <Route path="/annuaire" element={<Annuaire />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/confirmation-email" element={<EmailConfirmation />} />
             </Routes>
           </main>
           <Footer />

@@ -102,12 +102,21 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onSwitchMode }) => {
 
       if (!result.success) {
         setError(result.error);
+        setLoading(false);
+        return;
       }
+
+      handleClose();
+      navigate('/confirmation-email', { state: { email: formData.email } });
+      setLoading(false);
+      return;
     } else {
       const result = await login(formData.email, formData.password);
 
       if (!result.success) {
         setError(result.error);
+        setLoading(false);
+        return;
       }
     }
 

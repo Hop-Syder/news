@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import axios from 'axios';
 import { ArrowRight, Users, Building2, Globe, Star } from 'lucide-react';
 import { IMAGES } from '@/config/images';
+import { useAuth } from '@/contexts/AuthContext';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -16,6 +17,8 @@ const Home = () => {
     totalViews: 0,
     totalProblems: 0
   });
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchStats();
@@ -33,6 +36,14 @@ const Home = () => {
       });
     } catch (error) {
       console.error('Failed to fetch stats:', error);
+    }
+  };
+
+  const handleGetStarted = () => {
+    if (isAuthenticated) {
+      navigate('/dashboard');
+    } else {
+      window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'register' } }));
     }
   };
 
@@ -103,16 +114,15 @@ const Home = () => {
               La plateforme de networking qui donne une présence digitale instantanée aux entrepreneurs, artisans et startups
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
-              <Link to="/dashboard">
-                <Button
-                  size="lg"
-                  className="bg-jaune-soleil text-bleu-marine hover:bg-jaune-soleil/90 text-lg px-8 py-6"
-                  data-testid="get-started-btn"
-                >
-                  Créer mon profil gratuitement
-                  <ArrowRight className="ml-2" />
-                </Button>
-              </Link>
+              <Button
+                size="lg"
+                className="bg-jaune-soleil text-bleu-marine hover:bg-jaune-soleil/90 text-lg px-8 py-6"
+                data-testid="get-started-btn"
+                onClick={handleGetStarted}
+              >
+                Créer mon profil gratuitement
+                <ArrowRight className="ml-2" />
+              </Button>
               <Link to="/annuaire">
                 <Button
                   size="lg"

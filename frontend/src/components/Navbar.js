@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,17 @@ const Navbar = () => {
     logout();
     navigate('/');
   };
+
+  useEffect(() => {
+    const handleOpenAuthModal = (event) => {
+      const mode = event.detail?.mode || 'login';
+      setAuthMode(mode);
+      setShowAuthModal(true);
+    };
+
+    window.addEventListener('open-auth-modal', handleOpenAuthModal);
+    return () => window.removeEventListener('open-auth-modal', handleOpenAuthModal);
+  }, []);
 
   return (
     <>
