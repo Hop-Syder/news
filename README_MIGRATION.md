@@ -68,7 +68,7 @@ Pour une utilisation complète, vous devez configurer votre projet Supabase.
 ```bash
 SUPABASE_URL=https://[VOTRE-PROJECT-REF].supabase.co
 SUPABASE_ANON_KEY=[VOTRE-ANON-KEY-ICI]
-SUPABASE_SERVICE_KEY=[VOTRE-SERVICE-ROLE-KEY-ICI]
+SUPABASE_SERVICE_ROLE_KEY=[VOTRE-SERVICE-ROLE-KEY-ICI]
 ```
 
 **Frontend** (`/app/frontend/.env`):

@@ -40,8 +40,8 @@ const Footer = () => {
                 </Link>
               </li>
               <li>
-                <Link to="/dashboard" className="text-gray-300 hover:text-jaune-soleil transition-colors text-sm">
-                  Créer mon profil
+                <Link to="/ma-carte" className="text-gray-300 hover:text-jaune-soleil transition-colors text-sm">
+                  Ma carte entrepreneur
                 </Link>
               </li>
             </ul>

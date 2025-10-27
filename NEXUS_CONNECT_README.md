@@ -17,20 +17,24 @@
 - `POST /api/auth/register` - Inscription email/password
 - `POST /api/auth/login` - Connexion email/password
 - `GET /api/auth/me` - Profil utilisateur actuel
-- `GET /api/entrepreneurs` - Liste avec filtres avancés
+- `GET /api/entrepreneurs` - Liste publique (profils publiés uniquement)
 - `GET /api/entrepreneurs/:id` - Détails profil public (sans contacts)
 - `GET /api/entrepreneurs/:id/contact` - Récupération contacts (protégée par RLS)
-- `POST /api/entrepreneurs` - Création profil
-- `PUT /api/entrepreneurs/:id` - Mise à jour profil (vérification ownership par RLS)
+- `GET /api/entrepreneurs/me` - Profil entrepreneur de l'utilisateur connecté
+- `POST /api/entrepreneurs/me` - Création de carte entrepreneur
+- `PUT /api/entrepreneurs/me` - Mise à jour des champs modifiables
+- `PATCH /api/entrepreneurs/me/status` - Changement de statut (draft/published/deactivated)
+- `DELETE /api/entrepreneurs/:id` - Suppression (propriétaire uniquement)
 - `POST /api/contact` - Formulaire contact
-- `GET /api/stats` - Statistiques globales
+- `GET /api/contact/stats` - Statistiques globales
 
 #### 2. **Frontend React avec Supabase SDK**
 
 **Pages implémentées:**
 - ✅ **Page d'accueil** (`/`) - Hero, statistiques en temps réel, services, témoignages
 - ✅ **Annuaire** (`/annuaire`) - Recherche full-text, filtres PostgreSQL, cartes entrepreneurs
-- ✅ **Dashboard** (`/dashboard`) - Onboarding 3 étapes avec barre de progression
+- ✅ **Ma Carte** (`/ma-carte`) - Gestion complète de la carte entrepreneur (création, édition, publication)
+- ✅ **Mon Profil** (`/mon-profil`) - Paramètres du compte, mot de passe, suppression
 - ✅ **Contact** (`/contact`) - Formulaire + FAQ
 
 **Composants:**
@@ -133,29 +137,14 @@ Villes: 48+
 
 ### 🚀 Fonctionnalités Clés
 
-#### Dashboard Utilisateur (3 Étapes)
+#### Ma Carte Entrepreneur
 
-**Étape 1: Type de profil**
-- 8 types disponibles avec icônes
-- Interface à cartes cliquables
-- Validation avant passage étape suivante
-
-**Étape 2: Informations générales**
-- Upload logo vers Supabase Storage
-- Nom, prénom, nom entreprise
-- Description (200 caractères max avec compteur en temps réel)
-- Sélection pays/ville dynamique (PostgreSQL foreign keys)
-
-**Étape 3: Détails publics**
-- Sélection tags/compétences (max 5) avec recherche
-- Filtres par catégorie
-- Téléphone, WhatsApp, Email
-- Site web (optionnel)
-
-**Étape 4: Prévisualisation**
-- Aperçu complet avant publication
-- Modification ou publication directe
-- Sauvegarde instantanée dans PostgreSQL
+- ⚠️ Champs verrouillés après première sauvegarde : prénom, nom, entreprise, email, téléphone
+- ✅ Statuts gérés côté PostgreSQL (`draft`, `published`, `deactivated`)
+- ✅ Aperçu visuel de la carte (badges statut, tags, localisation)
+- ✅ Actions rapides : modifier, sauvegarder, publier, désactiver
+- ✅ Sélection assistée des compétences (max 5) et préfiltrage par pays/ville
+- 💾 Autosave via API `/api/entrepreneurs/me`
 
 #### Protection Anti-Scraping avec RLS
 
@@ -300,7 +289,7 @@ Les coordonnées (téléphone, email) sont **protégées au niveau base de donn�
 # .env backend
 SUPABASE_URL=https://your-project-ref.supabase.co
 SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_KEY=your-service-role-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
 CORS_ORIGINS=https://your-app.vercel.app,http://localhost:3000
 ```
 

@@ -9,6 +9,9 @@ class PortfolioItem(BaseModel):
     value: str
 
 
+EntrepreneurStatus = Literal["draft", "published", "deactivated"]
+
+
 class EntrepreneurBase(BaseModel):
     """Base entrepreneur schema"""
     profile_type: Literal[
@@ -47,7 +50,8 @@ class EntrepreneurBase(BaseModel):
 class EntrepreneurCreate(EntrepreneurBase):
     """Schema for creating entrepreneur profile"""
     logo_url: Optional[str] = None
-    is_active: Optional[bool] = True
+    status: EntrepreneurStatus = "draft"
+    first_saved_at: Optional[datetime] = None
 
 
 class EntrepreneurUpdate(BaseModel):
@@ -56,21 +60,15 @@ class EntrepreneurUpdate(BaseModel):
         "entreprise", "freelance", "pme", "artisan", 
         "ONG", "cabinet", "organisation", "autre"
     ]] = None
-    first_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    last_name: Optional[str] = Field(None, min_length=1, max_length=100)
-    company_name: Optional[str] = Field(None, max_length=200)
     activity_name: Optional[str] = Field(None, max_length=200)
     description: Optional[str] = Field(None, min_length=1, max_length=200)
     tags: Optional[List[str]] = Field(None, max_length=5)
-    phone: Optional[str] = Field(None, min_length=1, max_length=50)
     whatsapp: Optional[str] = Field(None, min_length=1, max_length=50)
-    email: Optional[EmailStr] = None
     country_code: Optional[str] = Field(None, min_length=2, max_length=2)
     city: Optional[str] = Field(None, min_length=1, max_length=100)
     website: Optional[str] = Field(None, max_length=500)
     portfolio: Optional[List[PortfolioItem]] = None
     logo_url: Optional[str] = None
-    is_active: Optional[bool] = None
 
 
 class EntrepreneurPublic(BaseModel):
@@ -91,9 +89,10 @@ class EntrepreneurPublic(BaseModel):
     rating: float
     review_count: int
     is_premium: bool
-    is_active: Optional[bool] = True
+    status: EntrepreneurStatus
     created_at: datetime
     updated_at: datetime
+    first_saved_at: Optional[datetime] = None
 
 
 class EntrepreneurFull(EntrepreneurPublic):
@@ -129,3 +128,8 @@ class EntrepreneurDraftPayload(BaseModel):
 class EntrepreneurDraftResponse(EntrepreneurDraftPayload):
     """Response model for entrepreneur draft"""
     updated_at: Optional[datetime] = None
+
+
+class EntrepreneurStatusUpdate(BaseModel):
+    """Payload for updating entrepreneur publication status"""
+    status: EntrepreneurStatus

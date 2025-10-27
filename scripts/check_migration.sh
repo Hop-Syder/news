@@ -82,7 +82,7 @@ check_env() {
 # Backend .env
 check_env "$APP_ROOT/backend/.env" "SUPABASE_URL"
 check_env "$APP_ROOT/backend/.env" "SUPABASE_ANON_KEY"
-check_env "$APP_ROOT/backend/.env" "SUPABASE_SERVICE_KEY"
+check_env "$APP_ROOT/backend/.env" "SUPABASE_SERVICE_ROLE_KEY"
 
 # Frontend .env
 check_env "$APP_ROOT/frontend/.env" "REACT_APP_SUPABASE_URL"

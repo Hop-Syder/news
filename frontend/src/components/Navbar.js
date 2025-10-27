@@ -3,7 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import AuthModal from './AuthModal';
-import { Menu, X, User, LogOut } from 'lucide-react';
+import { Menu, X, User, LogOut, ChevronDown, CreditCard, Settings } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
@@ -12,13 +19,8 @@ const Navbar = () => {
   const [authMode, setAuthMode] = useState('login');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const handleAuthClick = (mode) => {
-    setAuthMode(mode);
-    setShowAuthModal(true);
-  };
-
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
@@ -32,6 +34,22 @@ const Navbar = () => {
     window.addEventListener('open-auth-modal', handleOpenAuthModal);
     return () => window.removeEventListener('open-auth-modal', handleOpenAuthModal);
   }, []);
+
+  const handleLoginClick = () => {
+    setAuthMode('login');
+    setShowAuthModal(true);
+  };
+
+  const getUserDisplayName = () => {
+    if (user?.first_name) {
+      const lastInitial = user?.last_name ? `${user.last_name[0].toUpperCase()}.` : '';
+      return `${user.first_name} ${lastInitial}`.trim();
+    }
+    if (user?.email) {
+      return user.email.split('@')[0];
+    }
+    return 'Mon compte';
+  };
 
   return (
     <>
@@ -56,42 +74,63 @@ const Navbar = () => {
               <Link to="/annuaire" className="text-charbon hover:text-jaune-soleil transition-colors font-medium">
                 Annuaire
               </Link>
-              <Link to="/contact" className="text-charbon hover:text-jaune-soleil transition-colors font-medium">
-                Contact
-              </Link>
+              {!isAuthenticated && (
+                <Link to="/contact" className="text-charbon hover:text-jaune-soleil transition-colors font-medium">
+                  Contact
+                </Link>
+              )}
 
               {isAuthenticated ? (
                 <>
-                  <Link to="/dashboard">
-                    <Button className="bg-jaune-soleil text-bleu-marine hover:bg-jaune-soleil/90">
-                      <User className="w-4 h-4 mr-2" />
-                      Mon Profil
-                    </Button>
+                  <Link to="/ma-carte" className="text-charbon hover:text-jaune-soleil transition-colors font-medium">
+                    Ma Carte
                   </Link>
-                  <Button
-                    variant="ghost"
-                    onClick={handleLogout}
-                    className="text-charbon hover:text-red-600"
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </Button>
+                  <Link to="/mon-profil" className="text-charbon hover:text-jaune-soleil transition-colors font-medium">
+                    Mon Profil
+                  </Link>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" className="flex items-center gap-2 hover:bg-jaune-soleil/10">
+                        <User className="w-4 h-4" />
+                        <span>{getUserDisplayName()}</span>
+                        <ChevronDown className="w-4 h-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <div className="px-3 py-2 text-xs text-gray-500">
+                        Connecté en tant que
+                        <br />
+                        <span className="font-medium text-charbon">{user?.email}</span>
+                      </div>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link to="/ma-carte" className="cursor-pointer">
+                          <CreditCard className="w-4 h-4 mr-2" />
+                          Ma Carte
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link to="/mon-profil" className="cursor-pointer">
+                          <Settings className="w-4 h-4 mr-2" />
+                          Mon Profil
+                        </Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={handleLogout} className="text-red-600 cursor-pointer">
+                        <LogOut className="w-4 h-4 mr-2" />
+                        Déconnexion
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </>
               ) : (
-                <>
-                  <Button
-                    variant="outline"
-                    onClick={() => handleAuthClick('login')}
-                    className="border-bleu-marine text-bleu-marine hover:bg-bleu-marine hover:text-white"
-                  >
-                    Connexion
-                  </Button>
-                  <Button
-                    onClick={() => handleAuthClick('register')}
-                    className="bg-jaune-soleil text-bleu-marine hover:bg-jaune-soleil/90"
-                  >
-                    Créer mon profil
-                  </Button>
-                </>
+                <Button
+                  variant="outline"
+                  onClick={handleLoginClick}
+                  className="border-bleu-marine text-bleu-marine hover:bg-bleu-marine hover:text-white"
+                >
+                  Se connecter
+                </Button>
               )}
             </div>
 
@@ -125,18 +164,27 @@ const Navbar = () => {
               >
                 Annuaire
               </Link>
-              <Link
-                to="/contact"
-                className="block px-3 py-2 rounded-md text-charbon hover:bg-jaune-soleil/10"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Contact
-              </Link>
+              {!isAuthenticated && (
+                <Link
+                  to="/contact"
+                  className="block px-3 py-2 rounded-md text-charbon hover:bg-jaune-soleil/10"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Contact
+                </Link>
+              )}
 
               {isAuthenticated ? (
                 <>
                   <Link
-                    to="/dashboard"
+                    to="/ma-carte"
+                    className="block px-3 py-2 rounded-md text-charbon hover:bg-jaune-soleil/10"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Ma Carte
+                  </Link>
+                  <Link
+                    to="/mon-profil"
                     className="block px-3 py-2 rounded-md text-charbon hover:bg-jaune-soleil/10"
                     onClick={() => setMobileMenuOpen(false)}
                   >
@@ -153,26 +201,15 @@ const Navbar = () => {
                   </button>
                 </>
               ) : (
-                <>
-                  <button
-                    onClick={() => {
-                      handleAuthClick('login');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-3 py-2 rounded-md text-charbon hover:bg-jaune-soleil/10"
-                  >
-                    Connexion
-                  </button>
-                  <button
-                    onClick={() => {
-                      handleAuthClick('register');
-                      setMobileMenuOpen(false);
-                    }}
-                    className="block w-full text-left px-3 py-2 rounded-md bg-jaune-soleil text-bleu-marine font-medium"
-                  >
-                    Créer mon profil
-                  </button>
-                </>
+                <button
+                  onClick={() => {
+                    handleLoginClick();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="block w-full text-left px-3 py-2 rounded-md text-charbon hover:bg-jaune-soleil/10"
+                >
+                  Se connecter
+                </button>
               )}
             </div>
           </div>

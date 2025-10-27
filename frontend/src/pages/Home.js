@@ -41,7 +41,7 @@ const Home = () => {
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
-      navigate('/dashboard');
+      navigate('/ma-carte');
     } else {
       window.dispatchEvent(new CustomEvent('open-auth-modal', { detail: { mode: 'register' } }));
     }
@@ -252,15 +252,14 @@ const Home = () => {
           <p className="text-xl text-charbon mb-8">
             Rejoignez des milliers d'entrepreneurs qui font confiance à Nexus Connect
           </p>
-          <Link to="/dashboard">
-            <Button
-              size="lg"
-              className="bg-bleu-marine text-white hover:bg-bleu-marine/90 text-lg px-12 py-6"
-            >
-              Créer mon profil maintenant
-              <ArrowRight className="ml-2" />
-            </Button>
-          </Link>
+          <Button
+            size="lg"
+            onClick={handleGetStarted}
+            className="bg-bleu-marine text-white hover:bg-bleu-marine/90 text-lg px-12 py-6"
+          >
+            Créer mon profil maintenant
+            <ArrowRight className="ml-2" />
+          </Button>
         </div>
       </section>
     </div>

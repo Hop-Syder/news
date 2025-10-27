@@ -76,7 +76,7 @@ https://your-project-ref.supabase.co
 SUPABASE_ANON_KEY
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...votre-anon-key-complete...
 
-SUPABASE_SERVICE_KEY
+SUPABASE_SERVICE_ROLE_KEY
 eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...votre-service-role-key-complete...
 
 APP_NAME
@@ -95,7 +95,7 @@ https://votre-app.vercel.app
 ⚠️ **IMPORTANT:**
 - Remplacer `your-project-ref` par votre vrai project ref Supabase
 - Remplacer `votre-app.vercel.app` par votre vrai domaine Vercel
-- Le `SUPABASE_SERVICE_KEY` est **SECRET** - ne JAMAIS l'exposer!
+- Le `SUPABASE_SERVICE_ROLE_KEY` est **SECRET** - ne JAMAIS l'exposer!
 
 ### railway.toml (optionnel mais recommandé)
 
@@ -191,7 +191,7 @@ https://your-project-ref.supabase.co
 SUPABASE_ANON_KEY
 [même que prod - ou créer un projet Supabase dédié staging]
 
-SUPABASE_SERVICE_KEY
+SUPABASE_SERVICE_ROLE_KEY
 [même que prod - ou créer un projet Supabase dédié staging]
 
 APP_NAME
@@ -222,7 +222,7 @@ Configurez les variables d'environnement pour "Preview" :
 
 - [ ] `SUPABASE_URL` - URL complète avec https://
 - [ ] `SUPABASE_ANON_KEY` - Clé publique (anon)
-- [ ] `SUPABASE_SERVICE_KEY` - Clé secrète (service_role)
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` - Clé secrète (service_role)
 - [ ] `CORS_ORIGINS` - URL Vercel frontend
 - [ ] `ENVIRONMENT` - `production` ou `staging`
 - [ ] Port binding automatique via `$PORT`
@@ -253,7 +253,7 @@ Configurez les variables d'environnement pour "Preview" :
 
 ### ❌ NE JAMAIS EXPOSER (Backend UNIQUEMENT)
 
-- `SUPABASE_SERVICE_KEY` - Clé secrète
+- `SUPABASE_SERVICE_ROLE_KEY` - Clé secrète
 - Mots de passe de base de données
 - Clés API tierces
 

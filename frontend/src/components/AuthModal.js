@@ -29,7 +29,7 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onSwitchMode }) => {
     if (isAuthenticated && isOpen) {
       console.log('User is authenticated, redirecting...');
       onClose();
-      navigate(user.has_profile ? '/annuaire' : '/dashboard');
+      navigate('/ma-carte');
     }
   }, [isAuthenticated, user, navigate, onClose, isOpen]);
 

@@ -177,8 +177,9 @@ CREATE TABLE IF NOT EXISTS public.entrepreneurs (
     is_premium BOOLEAN DEFAULT FALSE,
     premium_until TIMESTAMPTZ,
 
-    -- Publication
-    is_active BOOLEAN DEFAULT TRUE,
+    -- Statut publication
+    status VARCHAR(20) DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'deactivated')),
+    first_saved_at TIMESTAMPTZ DEFAULT NOW(),
 
     -- Timestamps
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -192,6 +193,7 @@ CREATE INDEX IF NOT EXISTS idx_entrepreneurs_city ON public.entrepreneurs(city);
 CREATE INDEX IF NOT EXISTS idx_entrepreneurs_profile_type ON public.entrepreneurs(profile_type);
 CREATE INDEX IF NOT EXISTS idx_entrepreneurs_rating ON public.entrepreneurs(rating DESC);
 CREATE INDEX IF NOT EXISTS idx_entrepreneurs_tags ON public.entrepreneurs USING GIN(tags);
+CREATE INDEX IF NOT EXISTS idx_entrepreneurs_status ON public.entrepreneurs(status);
 
 -- Full-text search (français)
 CREATE INDEX IF NOT EXISTS idx_entrepreneurs_search ON public.entrepreneurs 
@@ -258,6 +260,38 @@ CREATE TRIGGER update_entrepreneurs_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
+-- Verrouillage des champs sensibles après première sauvegarde
+CREATE OR REPLACE FUNCTION public.lock_sensitive_fields()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.first_saved_at IS NOT NULL THEN
+        NEW.first_name := OLD.first_name;
+        NEW.last_name := OLD.last_name;
+        NEW.company_name := OLD.company_name;
+        NEW.email := OLD.email;
+        NEW.phone := OLD.phone;
+    ELSE
+        NEW.first_saved_at := COALESCE(NEW.first_saved_at, NOW());
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS lock_entrepreneur_fields ON public.entrepreneurs;
+CREATE TRIGGER lock_entrepreneur_fields
+    BEFORE UPDATE ON public.entrepreneurs
+    FOR EACH ROW
+    EXECUTE FUNCTION public.lock_sensitive_fields();
+
+-- Mise à jour des enregistrements existants (à exécuter lors d'une migration)
+UPDATE public.entrepreneurs
+SET status = 'published'
+WHERE status IS NULL;
+
+UPDATE public.entrepreneurs
+SET first_saved_at = COALESCE(first_saved_at, created_at)
+WHERE first_saved_at IS NULL;
+
 -- ==========================================
 -- FUNCTION: Auto-create user profile
 -- ==========================================
@@ -304,11 +338,11 @@ SELECT
     rating,
     review_count,
     is_premium,
-    is_active,
+    status,
     created_at,
     updated_at
 FROM public.entrepreneurs
-WHERE is_active IS TRUE;
+WHERE status = 'published';
 
 -- ==========================================
 -- FUNCTION: Récupérer contacts (protégé)
