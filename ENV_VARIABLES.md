@@ -132,7 +132,7 @@ restartPolicyMaxRetries = 10
 |------|-------|-------------|
 | `REACT_APP_SUPABASE_URL` | `https://your-project-ref.supabase.co` | Production, Preview, Development |
 | `REACT_APP_SUPABASE_ANON_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` | Production, Preview, Development |
-| `REACT_APP_BACKEND_URL` | `https://nexus-backend.railway.app` | Production |
+| `REACT_APP_BACKEND_URL` | `https://news-production-b762.up.railway.app/` | Production |
 | `REACT_APP_BACKEND_URL` | `https://nexus-backend-staging.railway.app` | Preview |
 | `REACT_APP_BACKEND_URL` | `http://localhost:8001` | Development |
 

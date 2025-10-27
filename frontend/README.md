@@ -1,70 +1,109 @@
-# Getting Started with Create React App
+# 🚀 Nexus Connect - Frontend
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Cette application est le frontend de **Nexus Connect**, une plateforme de networking pour les professionnels d'Afrique de l'Ouest. Elle est construite avec React et fournit l'interface utilisateur pour naviguer dans l'annuaire, gérer les profils et interagir avec les fonctionnalités de la plateforme.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## ✨ Technologies Utilisées
 
-### `npm start`
+- **Framework** : React (via `create-react-app` avec Craco pour la personnalisation)
+- **Composants UI** : shadcn/ui
+- **Styling** : Tailwind CSS
+- **Routing** : React Router v7
+- **Communication API** : Axios & Supabase JS SDK
+- **Gestion de formulaires** : React Hook Form avec Zod pour la validation
+- **Gestionnaire de paquets** : Yarn
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+---
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## 🔧 Démarrage Rapide
 
-### `npm test`
+Suivez ces instructions pour obtenir une copie du projet fonctionnelle sur votre machine locale à des fins de développement.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Prérequis
 
-### `npm run build`
+- Node.js (v18 ou plus récent)
+- Yarn
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### 1. Installation
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Clonez le dépôt, naviguez dans le dossier du frontend et installez les dépendances.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+```bash
+cd frontend
+yarn install
+```
 
-### `npm run eject`
+### 2. Variables d'Environnement
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+Le projet a besoin de variables d'environnement pour se connecter aux services backend. Créez un fichier `.env` à la racine du dossier `/frontend`.
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+Vous pouvez copier l'exemple fourni :
+```bash
+cp .env.example .env
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+Ensuite, remplissez les valeurs requises dans votre nouveau fichier `.env` :
+```env
+# URL de votre projet Supabase
+REACT_APP_SUPABASE_URL=https://your-project-ref.supabase.co
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+# Clé "anon" publique de votre projet Supabase
+REACT_APP_SUPABASE_ANON_KEY=your-supabase-anon-key
 
-## Learn More
+# URL de votre backend déployé sur Railway (ou http://localhost:8001 pour le dev local)
+REACT_APP_BACKEND_URL=http://localhost:8001
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+---
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 📜 Scripts Disponibles
 
-### Code Splitting
+Dans le répertoire du projet, vous pouvez exécuter :
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### `yarn start`
 
-### Analyzing the Bundle Size
+Lance l'application en mode développement.
+Ouvrez http://localhost:3000 pour la voir dans votre navigateur. La page se rechargera automatiquement lorsque vous ferez des modifications.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+### `yarn build`
 
-### Making a Progressive Web App
+Construit l'application pour la production dans le dossier `build`.
+Cette commande optimise les fichiers pour de meilleures performances et prépare l'application à être déployée.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+### `yarn test`
 
-### Advanced Configuration
+Lance les tests en mode interactif.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+---
 
-### Deployment
+## 📁 Structure du Projet
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+```
+frontend/
+├── public/         # Fichiers statiques (index.html, favicon)
+├── src/
+│   ├── components/   # Composants réutilisables (Navbar, Button, etc.)
+│   ├── contexts/     # Contexte React (ex: AuthContext)
+│   ├── lib/          # Clients API (supabase.js, axios.js)
+│   ├── pages/        # Pages principales de l'application (Home, Annuaire, etc.)
+│   ├── App.js        # Point d'entrée principal et gestion du routing
+│   └── index.js      # Fichier racine de l'application React
+├── .env            # Variables d'environnement (à créer)
+├── package.json    # Dépendances et scripts
+└── vercel.json     # Configuration de déploiement pour Vercel
+```
 
-### `npm run build` fails to minify
+---
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## ▲ Déploiement
+
+Ce projet est configuré pour un déploiement facile sur Vercel.
+
+1.  Connectez votre dépôt Git à Vercel.
+2.  Configurez le **Root Directory** sur `frontend`.
+3.  Vercel détectera automatiquement les commandes de build (`yarn build`) et le dossier de sortie (`build`) grâce au fichier `vercel.json`.
+4.  Ajoutez les variables d'environnement (`REACT_APP_...`) dans les paramètres du projet sur Vercel.
+
+Pour plus de détails, consultez le fichier `ENV_VARIABLES.md`.
+
