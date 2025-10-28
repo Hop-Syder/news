@@ -26,6 +26,14 @@ const Annuaire = () => {
   const [contactInfo, setContactInfo] = useState(null);
   const [showContactModal, setShowContactModal] = useState(false);
 
+  const tagColorClasses = [
+    'bg-rose-100 text-rose-700',
+    'bg-sky-100 text-sky-700',
+    'bg-emerald-100 text-emerald-700',
+    'bg-amber-100 text-amber-700',
+    'bg-indigo-100 text-indigo-700'
+  ];
+
   useEffect(() => {
     fetchEntrepreneurs();
   }, []);
@@ -94,6 +102,10 @@ const Annuaire = () => {
       minRating: ''
     });
     setSearch('');
+  };
+
+  const openProfile = (entrepreneurId) => {
+    window.open(`/annuaire?profile=${entrepreneurId}`, '_blank');
   };
 
   return (
@@ -213,105 +225,121 @@ const Annuaire = () => {
 
         {/* Entrepreneurs Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {entrepreneurs.map((entrepreneur) => (
-            <Card
-              key={entrepreneur.id}
-              className={`hover:shadow-xl transition-shadow duration-300 relative ${
-                entrepreneur.is_premium ? 'ring-2 ring-jaune-soleil' : ''
-              }`}
-              data-testid="entrepreneur-card"
-            >
-              {entrepreneur.is_premium && (
-                <div className="absolute top-2 right-2">
-                  <Badge className="bg-jaune-soleil text-bleu-marine">
-                    <Crown className="w-3 h-3 mr-1" />
-                    Premium
-                  </Badge>
-                </div>
-              )}
-              <CardContent className="p-6">
-                {/* Logo/Avatar */}
-                <div className="flex justify-center mb-4">
-                  {entrepreneur.logo_url ? (
-                    <img
-                      src={entrepreneur.logo_url}
-                      alt={entrepreneur.company_name || `${entrepreneur.first_name || ''} ${entrepreneur.last_name || ''}`.trim() || 'Logo'}
-                      className="w-20 h-20 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 rounded-full bg-jaune-soleil flex items-center justify-center text-3xl font-bold text-bleu-marine">
-                      {(entrepreneur.company_name || entrepreneur.first_name || 'U').charAt(0)}
-                    </div>
-                  )}
-                </div>
+          {entrepreneurs.map((entrepreneur) => {
+            const fullName = `${entrepreneur.first_name || ''} ${entrepreneur.last_name || ''}`.trim();
+            const isPremium = Boolean(entrepreneur.is_premium);
 
-                {/* Info */}
-                <div className="text-center mb-4">
-                  <h3 className="text-xl font-bold text-bleu-marine mb-1">
-                    {entrepreneur.company_name || `${entrepreneur.first_name || ''} ${entrepreneur.last_name || ''}`.trim() || 'Profil entrepreneur'}
-                  </h3>
-                  {entrepreneur.activity_name && (
-                    <p className="text-sm text-gray-600 mb-2">
-                      {entrepreneur.activity_name}
-                    </p>
-                  )}
-                  <div className="flex items-center justify-center text-sm text-gray-500 mb-2">
-                    <MapPin className="w-4 h-4 mr-1" />
-                    {entrepreneur.city}, {COUNTRIES[entrepreneur.country_code]?.name || entrepreneur.country_code}
-                  </div>
-                  <p className="text-sm text-gray-700">
-                    {entrepreneur.description}
-                  </p>
-                </div>
-
-                {/* Tags */}
-                <div className="flex flex-wrap gap-2 justify-center mb-4">
-                  {(entrepreneur.tags || []).slice(0, 3).map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="text-xs">
-                      {tag}
+            return (
+              <Card
+                key={entrepreneur.id}
+                className={`relative overflow-hidden rounded-3xl transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl border-2 ${
+                  isPremium
+                    ? 'bg-gradient-to-br from-amber-50 via-white to-amber-100 border-[#FAD02E] shadow-[0_10px_40px_rgba(250,208,46,0.25)]'
+                    : 'bg-white border-gray-200 hover:border-bleu-marine/20'
+                }`}
+                data-testid="entrepreneur-card"
+              >
+                {isPremium && (
+                  <div className="absolute top-3 right-3">
+                    <Badge className="bg-gradient-to-r from-amber-400 to-amber-300 text-bleu-marine font-semibold tracking-wide">
+                      <Crown className="w-3 h-3 mr-1" />
+                      PREMIUM
                     </Badge>
-                  ))}
-                </div>
-
-                {/* Rating */}
-                {entrepreneur.rating > 0 && (
-                  <div className="flex items-center justify-center mb-4">
-                    <Star className="w-4 h-4 fill-jaune-soleil text-jaune-soleil mr-1" />
-                    <span className="text-sm font-medium">
-                      {entrepreneur.rating.toFixed(1)}
-                    </span>
-                    <span className="text-xs text-gray-500 ml-1">
-                      ({entrepreneur.review_count || 0})
-                    </span>
                   </div>
                 )}
+                <CardContent className="p-6 lg:p-8">
+                  <div className="flex justify-center mb-5">
+                    {entrepreneur.logo_url ? (
+                      <div className={`p-1 rounded-full ${isPremium ? 'bg-gradient-to-br from-amber-300 to-amber-500' : 'bg-gray-200'}`}>
+                        <img
+                          src={entrepreneur.logo_url}
+                          alt={entrepreneur.company_name || fullName || 'Logo'}
+                          className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-24 h-24 rounded-full bg-jaune-soleil flex items-center justify-center text-4xl font-bold text-bleu-marine shadow-inner">
+                        {(entrepreneur.company_name || entrepreneur.first_name || 'U').charAt(0)}
+                      </div>
+                    )}
+                  </div>
 
-                {/* Contact Buttons */}
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openWhatsApp(entrepreneur.id)}
-                    className="flex-1 bg-vert-emeraude/10 hover:bg-vert-emeraude/20 border-vert-emeraude text-vert-emeraude"
-                    data-testid="whatsapp-btn"
-                  >
-                    <Phone className="w-4 h-4 mr-1" />
-                    WhatsApp
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => openEmail(entrepreneur.id)}
-                    className="flex-1 hover:bg-bleu-marine/10"
-                    data-testid="email-btn"
-                  >
-                    <Mail className="w-4 h-4 mr-1" />
-                    Email
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                  <div className="text-center mb-5 space-y-2">
+                    <h3 className="text-2xl font-extrabold text-bleu-marine">
+                      {entrepreneur.company_name || 'Carte entrepreneur'}
+                    </h3>
+                    <p className="text-sm text-gray-500">{fullName}</p>
+                    {entrepreneur.activity_name && (
+                      <p className="text-sm text-gray-600 italic">
+                        {entrepreneur.activity_name}
+                      </p>
+                    )}
+                    <div className="flex items-center justify-center text-sm text-gray-500">
+                      <MapPin className="w-4 h-4 mr-1" />
+                      {entrepreneur.city}, {COUNTRIES[entrepreneur.country_code]?.name || entrepreneur.country_code}
+                    </div>
+                    <p className="text-sm text-gray-700 line-clamp-2">
+                      {entrepreneur.description}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 justify-center mb-4">
+                    {(entrepreneur.tags || []).slice(0, 5).map((tag, index) => (
+                      <span
+                        key={`${entrepreneur.id}-tag-${tag}-${index}`}
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${tagColorClasses[index % tagColorClasses.length]}`}
+                      >
+                        #{tag}
+                      </span>
+                    ))}
+                  </div>
+
+                  {entrepreneur.rating > 0 && (
+                    <div className="flex items-center justify-center gap-2 text-bleu-marine mb-5">
+                      <Star className="w-4 h-4 fill-jaune-soleil text-jaune-soleil" />
+                      <span className="text-sm font-medium">
+                        {entrepreneur.rating.toFixed(1)}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        ({entrepreneur.review_count || 0} avis)
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openWhatsApp(entrepreneur.id)}
+                      className="flex-1 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500 text-emerald-700"
+                      data-testid="whatsapp-btn"
+                    >
+                      <Phone className="w-4 h-4 mr-1" />
+                      WhatsApp
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEmail(entrepreneur.id)}
+                      className="flex-1 border border-bleu-marine text-bleu-marine hover:bg-bleu-marine/10"
+                      data-testid="email-btn"
+                    >
+                      <Mail className="w-4 h-4 mr-1" />
+                      Email
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex-1 text-gray-500 hover:text-bleu-marine"
+                      onClick={() => openProfile(entrepreneur.id)}
+                    >
+                      Voir profil
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
 
         {entrepreneurs.length === 0 && !loading && (
