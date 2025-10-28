@@ -6,6 +6,7 @@ import axios from 'axios';
 import { ArrowRight, Users, Building2, Globe, Star } from 'lucide-react';
 import { IMAGES } from '@/config/images';
 import { useAuth } from '@/contexts/AuthContext';
+import VisionSection from '@/components/VisionSection';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -168,6 +169,8 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      <VisionSection />
 
       {/* Services Section */}
       <section className="py-20 bg-gray-50">
