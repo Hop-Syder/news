@@ -20,8 +20,8 @@ const Navbar = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const handleLogout = async () => {
-    await logout();
-    navigate('/');
+    await logout('manual');
+    navigate('/', { replace: true });
   };
 
   useEffect(() => {

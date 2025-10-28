@@ -111,8 +111,8 @@ const MonProfil = () => {
         });
       }
 
-      await logout();
-      navigate('/');
+      await logout('manual');
+      navigate('/', { replace: true });
     } catch (err) {
       console.error('❌ [MonProfil] delete account:', err);
       setError(err.response?.data?.detail || 'Suppression impossible pour le moment.');

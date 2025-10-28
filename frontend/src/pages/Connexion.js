@@ -21,6 +21,11 @@ const reasonMessages = {
     description:
       'Votre session a expiré. Merci de vous reconnecter pour continuer sur Nexus Connect.',
   },
+  manual: {
+    title: 'Vous êtes déconnecté',
+    description:
+      'Vous avez quitté votre session en toute sécurité. Connectez-vous pour reprendre votre navigation.',
+  },
 };
 
 const Connexion = () => {

@@ -163,12 +163,17 @@ export const IdleTimeoutProvider = ({ children }) => {
       console.warn('⚠️ [IDLE] Impossible de vider localStorage:', error);
     }
 
-    if (reason === 'idle_timeout') {
-      navigate(`/login?reason=${reason}`, { replace: true });
-    } else if (reason === 'session_expired') {
-      navigate(`/login?reason=${reason}`, { replace: true });
-    } else {
-      navigate('/', { replace: true });
+    switch (reason) {
+      case 'idle_timeout':
+      case 'session_expired':
+        navigate(`/login?reason=${reason}`, { replace: true });
+        break;
+      case 'manual':
+        navigate('/', { replace: true });
+        break;
+      default:
+        navigate('/', { replace: true });
+        break;
     }
   }, [clearScheduledTimeouts, hideWarning, isAuthenticated, logout, navigate]);
 
@@ -375,9 +380,15 @@ export const IdleTimeoutProvider = ({ children }) => {
             hideWarning();
             clearSessionCookie();
             navigate(`/login?reason=${payload.reason}`, { replace: true });
+          } else if (payload?.reason === 'manual') {
+            clearScheduledTimeouts();
+            hideWarning();
+            clearSessionCookie();
+            navigate('/', { replace: true });
           } else {
             clearScheduledTimeouts();
             hideWarning();
+            clearSessionCookie();
             navigate('/', { replace: true });
           }
         } catch (error) {
