@@ -414,9 +414,12 @@ const MaCarte = () => {
               </div>
 
               <div className="text-center mb-4">
-                <h2 className="text-3xl font-bold text-bleu-marine">{displayName || 'Profil incomplet'}</h2>
+                <h2 className="text-3xl font-bold text-bleu-marine">{`${profile.first_name || ''} ${profile.last_name || ''}`.trim() || 'Profil incomplet'}</h2>
+                {profile.company_name && (
+                  <p className="text-lg text-gray-600 mt-1">{profile.company_name}</p>
+                )}
                 {profile.activity_name && (
-                  <p className="text-lg text-gray-600 mt-1">{profile.activity_name}</p>
+                  <p className="text-sm text-gray-500">{profile.activity_name}</p>
                 )}
                 {(profile.city || countryName) && (
                   <div className="flex items-center justify-center text-gray-600 mt-2">
