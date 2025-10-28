@@ -1,7 +1,8 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const AuthContext = createContext(null);
+const LOGOUT_EVENT_KEY = 'nexus-connect-auth-logout';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -15,6 +16,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  const clearAuthState = useCallback(() => {
+    setUser(null);
+    setSession(null);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     // Get initial session
@@ -37,13 +44,26 @@ export const AuthProvider = ({ children }) => {
       if (session?.user) {
         await loadUserProfile(session.user);
       } else {
-        setUser(null);
+        clearAuthState();
         setLoading(false);
       }
     });
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [clearAuthState]);
+
+  useEffect(() => {
+    const handleStorage = (event) => {
+      if (event.key === LOGOUT_EVENT_KEY && event.newValue) {
+        console.log('🔴 [AUTH] Logout broadcast received, clearing local state');
+        clearAuthState();
+        setLoading(false);
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, [clearAuthState]);
 
   const loadUserProfile = async (authUser) => {
     try {
@@ -200,7 +220,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = async () => {
+  const broadcastLogout = (reason) => {
+    try {
+      window.localStorage.setItem(
+        LOGOUT_EVENT_KEY,
+        JSON.stringify({ reason, ts: Date.now() })
+      );
+    } catch (error) {
+      console.warn('⚠️ [AUTH] Failed to broadcast logout event:', error);
+    }
+  };
+
+  const logout = async (reason = 'manual') => {
     try {
       console.log('🔵 [AUTH] Logging out...');
 
@@ -208,15 +239,15 @@ export const AuthProvider = ({ children }) => {
 
       if (error) throw error;
 
-      setUser(null);
-      setSession(null);
+      clearAuthState();
+      broadcastLogout(reason);
 
       console.log('✅ [AUTH] Logout successful');
     } catch (error) {
       console.error('❌ [AUTH] Logout error:', error);
       // Clear local state even if server logout fails
-      setUser(null);
-      setSession(null);
+      clearAuthState();
+      broadcastLogout(reason);
     }
   };
 

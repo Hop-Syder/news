@@ -1,6 +1,7 @@
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { IdleTimeoutProvider } from "@/contexts/IdleTimeoutContext";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Home from "@/pages/Home";
@@ -9,6 +10,7 @@ import Contact from "@/pages/Contact";
 import EmailConfirmation from "@/pages/EmailConfirmation";
 import MaCarte from "@/pages/MaCarte";
 import MonProfil from "@/pages/MonProfil";
+import Connexion from "@/pages/Connexion";
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -32,35 +34,38 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div className="flex flex-col min-h-screen">
-          <Navbar />
-          <main className="flex-1">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/annuaire" element={<Annuaire />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/confirmation-email" element={<EmailConfirmation />} />
-              <Route
-                path="/ma-carte"
-                element={
-                  <ProtectedRoute>
-                    <MaCarte />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/mon-profil"
-                element={
-                  <ProtectedRoute>
-                    <MonProfil />
-                  </ProtectedRoute>
-                }
-              />
-              <Route path="/dashboard" element={<Navigate to="/ma-carte" replace />} />
-            </Routes>
-          </main>
-          <Footer />
-        </div>
+        <IdleTimeoutProvider>
+          <div className="flex flex-col min-h-screen">
+            <Navbar />
+            <main className="flex-1">
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/annuaire" element={<Annuaire />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/connexion" element={<Connexion />} />
+                <Route path="/confirmation-email" element={<EmailConfirmation />} />
+                <Route
+                  path="/ma-carte"
+                  element={
+                    <ProtectedRoute>
+                      <MaCarte />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/mon-profil"
+                  element={
+                    <ProtectedRoute>
+                      <MonProfil />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="/dashboard" element={<Navigate to="/ma-carte" replace />} />
+              </Routes>
+            </main>
+            <Footer />
+          </div>
+        </IdleTimeoutProvider>
       </BrowserRouter>
     </AuthProvider>
   );
