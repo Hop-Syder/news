@@ -92,7 +92,8 @@ export const AuthProvider = ({ children }) => {
         email: authUser.email,
         first_name: data?.first_name,
         last_name: data?.last_name,
-        has_profile: data?.has_profile || false
+        has_profile: data?.has_profile || false,
+        created_at: authUser.created_at
       });
     } catch (error) {
       console.error('❌ [AUTH] Error loading profile:', error);
@@ -102,7 +103,8 @@ export const AuthProvider = ({ children }) => {
         email: authUser.email,
         first_name: null,
         last_name: null,
-        has_profile: false
+        has_profile: false,
+        created_at: authUser.created_at
       });
       const ensuredSession = ensureSession(authUser.id);
       setSessionInfo(ensuredSession);
@@ -156,7 +158,8 @@ export const AuthProvider = ({ children }) => {
           email: data.user.email,
           first_name: firstName,
           last_name: lastName,
-          has_profile: false
+          has_profile: false,
+          created_at: data.user.created_at
         }
       };
     } catch (error) {
