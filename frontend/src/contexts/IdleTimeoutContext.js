@@ -13,6 +13,12 @@ import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
+import {
+  updateSessionActivity,
+  hasValidSession,
+  clearSession as clearSessionCookie,
+  readSessionCookie,
+} from '@/utils/session';
 
 const IdleTimeoutContext = createContext({
   resetIdleTimer: () => {},
@@ -122,6 +128,7 @@ export const IdleTimeoutProvider = ({ children }) => {
     } catch (error) {
       console.warn('⚠️ [IDLE] Failed to persist activity timestamp:', error);
     }
+    updateSessionActivity(timestamp);
   }, []);
 
   const startWarningCountdown = useCallback(() => {
@@ -149,9 +156,17 @@ export const IdleTimeoutProvider = ({ children }) => {
     hideWarning();
 
     await logout(reason);
+    clearSessionCookie();
+    try {
+      window.localStorage.clear();
+    } catch (error) {
+      console.warn('⚠️ [IDLE] Impossible de vider localStorage:', error);
+    }
 
     if (reason === 'idle_timeout') {
-      navigate(`/connexion?reason=${reason}`, { replace: true });
+      navigate(`/login?reason=${reason}`, { replace: true });
+    } else if (reason === 'session_expired') {
+      navigate(`/login?reason=${reason}`, { replace: true });
     } else {
       navigate('/', { replace: true });
     }
@@ -199,6 +214,8 @@ export const IdleTimeoutProvider = ({ children }) => {
 
       if (broadcast) {
         persistActivity(referenceTimestamp);
+      } else {
+        updateSessionActivity(referenceTimestamp);
       }
     },
     [
@@ -270,7 +287,25 @@ export const IdleTimeoutProvider = ({ children }) => {
       return;
     }
 
-    resetIdleTimer('init');
+    if (!hasValidSession()) {
+      handleLocalLogout('session_expired');
+      return;
+    }
+
+    const sessionData = readSessionCookie();
+    const lastActivityTs = sessionData?.last_activity
+      ? new Date(sessionData.last_activity).getTime()
+      : null;
+    if (lastActivityTs) {
+      const inactivityDuration = Date.now() - lastActivityTs;
+      if (inactivityDuration >= idleDurationMs) {
+        handleLocalLogout('idle_timeout');
+        return;
+      }
+      resetIdleTimer('init', { activityTs: lastActivityTs });
+    } else {
+      resetIdleTimer('init');
+    }
     attachNetworkListeners();
 
     const userEvents = [
@@ -305,8 +340,10 @@ export const IdleTimeoutProvider = ({ children }) => {
     clearScheduledTimeouts,
     detachNetworkListeners,
     handleStorageEvent,
+    handleLocalLogout,
     hideWarning,
     isAuthenticated,
+    idleDurationMs,
     resetIdleTimer,
   ]);
 
@@ -331,7 +368,13 @@ export const IdleTimeoutProvider = ({ children }) => {
           if (payload?.reason === 'idle_timeout') {
             clearScheduledTimeouts();
             hideWarning();
-            navigate(`/connexion?reason=${payload.reason}`, { replace: true });
+            clearSessionCookie();
+            navigate(`/login?reason=${payload.reason}`, { replace: true });
+          } else if (payload?.reason === 'session_expired') {
+            clearScheduledTimeouts();
+            hideWarning();
+            clearSessionCookie();
+            navigate(`/login?reason=${payload.reason}`, { replace: true });
           } else {
             clearScheduledTimeouts();
             hideWarning();

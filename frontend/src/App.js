@@ -43,6 +43,7 @@ function App() {
                 <Route path="/annuaire" element={<Annuaire />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/connexion" element={<Connexion />} />
+                <Route path="/login" element={<Connexion />} />
                 <Route path="/confirmation-email" element={<EmailConfirmation />} />
                 <Route
                   path="/ma-carte"

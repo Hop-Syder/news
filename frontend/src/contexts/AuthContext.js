@@ -1,5 +1,11 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
+import {
+  ensureSession,
+  clearSession as clearSessionCookie,
+  createSession,
+  getSessionMeta,
+} from '@/utils/session';
 
 const AuthContext = createContext(null);
 const LOGOUT_EVENT_KEY = 'nexus-connect-auth-logout';
@@ -16,11 +22,13 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sessionInfo, setSessionInfo] = useState(() => getSessionMeta());
 
   const clearAuthState = useCallback(() => {
     setUser(null);
     setSession(null);
     setLoading(false);
+    setSessionInfo(null);
   }, []);
 
   useEffect(() => {
@@ -76,6 +84,9 @@ export const AuthProvider = ({ children }) => {
 
       if (error) throw error;
 
+      const ensuredSession = ensureSession(authUser.id);
+      setSessionInfo(ensuredSession);
+
       setUser({
         id: authUser.id,
         email: authUser.email,
@@ -93,6 +104,8 @@ export const AuthProvider = ({ children }) => {
         last_name: null,
         has_profile: false
       });
+      const ensuredSession = ensureSession(authUser.id);
+      setSessionInfo(ensuredSession);
     } finally {
       setLoading(false);
     }
@@ -131,6 +144,11 @@ export const AuthProvider = ({ children }) => {
       // User profile is created automatically by database trigger
       // Session and user are set by onAuthStateChange listener
 
+      if (data.session?.user) {
+        const createdSession = createSession(data.session.user.id);
+        setSessionInfo(createdSession);
+      }
+
       return {
         success: true,
         user: {
@@ -168,6 +186,8 @@ export const AuthProvider = ({ children }) => {
       console.log('✅ [AUTH] Login successful');
 
       // Session and user are set by onAuthStateChange listener
+      const ensuredSession = ensureSession(data.user.id);
+      setSessionInfo(ensuredSession);
 
       return { success: true };
     } catch (error) {
@@ -240,6 +260,12 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
 
       clearAuthState();
+      clearSessionCookie();
+      try {
+        window.localStorage.clear();
+      } catch (storageError) {
+        console.warn('⚠️ [AUTH] Impossible de vider localStorage:', storageError);
+      }
       broadcastLogout(reason);
 
       console.log('✅ [AUTH] Logout successful');
@@ -247,6 +273,12 @@ export const AuthProvider = ({ children }) => {
       console.error('❌ [AUTH] Logout error:', error);
       // Clear local state even if server logout fails
       clearAuthState();
+      clearSessionCookie();
+      try {
+        window.localStorage.clear();
+      } catch (storageError) {
+        console.warn('⚠️ [AUTH] Impossible de vider localStorage:', storageError);
+      }
       broadcastLogout(reason);
     }
   };
@@ -260,6 +292,7 @@ export const AuthProvider = ({ children }) => {
     loginWithGoogle,
     logout,
     isAuthenticated: !!user,
+    sessionInfo,
     // Expose access token for API calls if needed
     getAccessToken: () => session?.access_token
   };

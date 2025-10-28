@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,7 +31,9 @@ const API = BACKEND_URL ? `${BACKEND_URL}/api` : '';
 const LOCKED_FIELDS = ['first_name', 'last_name', 'company_name', 'email', 'phone'];
 
 const MaCarte = () => {
-  const { user, getAccessToken } = useAuth();
+  const { user, getAccessToken, sessionInfo } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
@@ -60,6 +63,25 @@ const MaCarte = () => {
   const loggerError = useCallback((label, err) => {
     console.error(`❌ [MaCarte] ${label}:`, err.response?.data || err.message || err);
   }, []);
+
+  useEffect(() => {
+    if (!sessionInfo?.session_id) {
+      return;
+    }
+    const params = new URLSearchParams(location.search);
+    if (params.get('id') === sessionInfo.session_id) {
+      return;
+    }
+    params.set('id', sessionInfo.session_id);
+    const searchString = params.toString();
+    navigate(
+      {
+        pathname: location.pathname,
+        search: searchString ? `?${searchString}` : '',
+      },
+      { replace: true }
+    );
+  }, [sessionInfo?.session_id, location.pathname, location.search, navigate]);
 
   const getAuthHeaders = useCallback(() => {
     const token = getAccessToken?.();

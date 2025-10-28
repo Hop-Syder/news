@@ -16,6 +16,11 @@ const reasonMessages = {
     description:
       'Votre session n’est plus valide. Veuillez vous reconnecter pour poursuivre.',
   },
+  session_expired: {
+    title: 'Session expirée',
+    description:
+      'Votre session a expiré. Merci de vous reconnecter pour continuer sur Nexus Connect.',
+  },
 };
 
 const Connexion = () => {
