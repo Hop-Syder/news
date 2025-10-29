@@ -230,12 +230,12 @@ const Annuaire = () => {
 
               {/* Filters */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <Select value={filters.location} onValueChange={(value) => handleFilterChange('location', value)}>
+                <Select value={filters.location || 'all'} onValueChange={(value) => handleFilterChange('location', value)}>
                   <SelectTrigger data-testid="country-filter">
                     <SelectValue placeholder="Pays" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tous les pays</SelectItem>
+                    <SelectItem value="all">Tous les pays</SelectItem>
                     {Object.values(COUNTRIES).map(country => (
                       <SelectItem key={country.code} value={country.code}>
                         {country.flag} {country.name}
@@ -245,15 +245,15 @@ const Annuaire = () => {
                 </Select>
 
                 <Select
-                  value={filters.city}
+                  value={filters.city || 'all'}
                   onValueChange={(value) => handleFilterChange('city', value)}
-                  disabled={!filters.location || filters.location === 'all'}
+                  disabled={!filters.location}
                 >
                   <SelectTrigger data-testid="city-filter">
                     <SelectValue placeholder="Ville" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Toutes les villes</SelectItem>
+                    <SelectItem value="all">Toutes les villes</SelectItem>
                     {filters.location &&
                       getCountryCities(filters.location).map(city => (
                         <SelectItem key={city} value={city}>
@@ -264,12 +264,12 @@ const Annuaire = () => {
                   </SelectContent>
                 </Select>
 
-                <Select value={filters.profileType} onValueChange={(value) => handleFilterChange('profileType', value)}>
+                <Select value={filters.profileType || 'all'} onValueChange={(value) => handleFilterChange('profileType', value)}>
                   <SelectTrigger data-testid="profile-type-filter">
                     <SelectValue placeholder="Type de profil" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Tous les types</SelectItem>
+                    <SelectItem value="all">Tous les types</SelectItem>
                     {PROFILE_TYPES.map(type => (
                       <SelectItem key={type.value} value={type.value}>
                         {type.icon} {type.label}
@@ -278,12 +278,12 @@ const Annuaire = () => {
                   </SelectContent>
                 </Select>
 
-                <Select value={filters.minRating} onValueChange={(value) => handleFilterChange('minRating', value)}>
+                <Select value={filters.minRating || 'all'} onValueChange={(value) => handleFilterChange('minRating', value)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Note minimale" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Toutes les notes</SelectItem>
+                    <SelectItem value="all">Toutes les notes</SelectItem>
                     <SelectItem value="4">4+ étoiles</SelectItem>
                     <SelectItem value="3">3+ étoiles</SelectItem>
                   </SelectContent>
