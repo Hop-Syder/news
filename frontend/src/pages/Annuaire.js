@@ -232,11 +232,10 @@ const Annuaire = () => {
             return (
               <Card
                 key={entrepreneur.id}
-                className={`relative overflow-hidden rounded-3xl transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl border-2 ${
-                  isPremium
+                className={`relative overflow-hidden rounded-3xl transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl border-2 ${isPremium
                     ? 'bg-gradient-to-br from-amber-50 via-white to-amber-100 border-[#FAD02E] shadow-[0_10px_40px_rgba(250,208,46,0.25)]'
                     : 'bg-white border-gray-200 hover:border-bleu-marine/20'
-                }`}
+                  }`}
                 data-testid="entrepreneur-card"
               >
                 {isPremium && (
@@ -269,11 +268,6 @@ const Annuaire = () => {
                       {entrepreneur.company_name || 'Carte entrepreneur'}
                     </h3>
                     <p className="text-sm text-gray-500">{fullName}</p>
-                    {entrepreneur.activity_name && (
-                      <p className="text-sm text-gray-600 italic">
-                        {entrepreneur.activity_name}
-                      </p>
-                    )}
                     <div className="flex items-center justify-center text-sm text-gray-500">
                       <MapPin className="w-4 h-4 mr-1" />
                       {entrepreneur.city}, {COUNTRIES[entrepreneur.country_code]?.name || entrepreneur.country_code}
