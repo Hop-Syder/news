@@ -4,16 +4,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import axios from 'axios';
 import { ArrowRight, CheckCircle2, Star } from 'lucide-react';
 import { IMAGES } from '@/config/images';
 import { useAuth } from '@/contexts/AuthContext';
 import VisionSection from '@/components/VisionSection';
+import { apiClient } from '@/lib/httpClient';
 
 // Section : Logique métier et structure du module
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
 const ServiceCard = ({ service, index }) => {
   const ref = useRef(null);
   const [isVisible, setIsVisible] = useState(false);
@@ -88,7 +85,7 @@ const Home = () => {
 
   const fetchStats = async () => {
     try {
-      const response = await axios.get(`${API}/contact/stats`);
+      const response = await apiClient.get('/contact/stats', { skipErrorToast: true });
       const data = response.data || {};
       setStats({
         totalUsers: data.totalUsers ?? data.total_users ?? 0,

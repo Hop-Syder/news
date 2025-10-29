@@ -1,10 +1,13 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from typing import Optional
 from datetime import datetime
 
 
 class UserBase(BaseModel):
     """Base user schema"""
+
+    model_config = ConfigDict(extra="ignore")
+
     email: EmailStr
 
 
@@ -23,6 +26,9 @@ class UserLogin(BaseModel):
 
 class UserResponse(BaseModel):
     """Schema for user response"""
+
+    model_config = ConfigDict(extra="ignore")
+
     id: str
     email: str
     first_name: Optional[str] = None
@@ -32,6 +38,9 @@ class UserResponse(BaseModel):
 
 class UserProfile(BaseModel):
     """Schema for user profile"""
+
+    model_config = ConfigDict(extra="ignore")
+
     id: str
     user_id: str
     first_name: Optional[str] = None
@@ -43,6 +52,9 @@ class UserProfile(BaseModel):
 
 class AuthResponse(BaseModel):
     """Schema for authentication response"""
+
+    model_config = ConfigDict(extra="ignore")
+
     access_token: str
     token_type: str = "bearer"
     user: UserResponse

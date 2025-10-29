@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from supabase import Client
+from models.common import PlatformStatsResponse
 from services.supabase_client import get_supabase_admin
 import logging
 
@@ -7,7 +8,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/stats", tags=["Statistics"])
 
 
-@router.get("", status_code=status.HTTP_200_OK)
+@router.get("", status_code=status.HTTP_200_OK, response_model=PlatformStatsResponse)
 async def get_global_stats(supabase: Client = Depends(get_supabase_admin)):
     """
     Get global statistics for the platform.
@@ -25,11 +26,11 @@ async def get_global_stats(supabase: Client = Depends(get_supabase_admin)):
         countries_res = supabase.table('entrepreneurs').select('country_code').execute()
         countries_count = len(set(item['country_code'] for item in countries_res.data))
 
-        return {
-            "total_users": users_count_res.count,
-            "total_entrepreneurs": entrepreneurs_count_res.count,
-            "countries_covered": countries_count,
-        }
+        return PlatformStatsResponse(
+            total_users=users_count_res.count or 0,
+            total_entrepreneurs=entrepreneurs_count_res.count or 0,
+            countries_covered=countries_count,
+        )
     except Exception as e:
         logger.error(f"Failed to fetch stats: {e}")
         raise HTTPException(

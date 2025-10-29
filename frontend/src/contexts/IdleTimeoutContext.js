@@ -10,10 +10,10 @@ import React, {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { AlertCircle } from 'lucide-react';
+import { apiClient } from '@/lib/httpClient';
 import {
   updateSessionActivity,
   hasValidSession,
@@ -247,7 +247,7 @@ export const IdleTimeoutProvider = ({ children }) => {
 
   const attachNetworkListeners = useCallback(() => {
     if (axiosInterceptorRef.current === null) {
-      axiosInterceptorRef.current = axios.interceptors.request.use(
+      axiosInterceptorRef.current = apiClient.interceptors.request.use(
         (config) => {
           resetIdleTimer('network');
           return config;
@@ -268,7 +268,7 @@ export const IdleTimeoutProvider = ({ children }) => {
 
   const detachNetworkListeners = useCallback(() => {
     if (axiosInterceptorRef.current !== null) {
-      axios.interceptors.request.eject(axiosInterceptorRef.current);
+      apiClient.interceptors.request.eject(axiosInterceptorRef.current);
       axiosInterceptorRef.current = null;
     }
     if (fetchPatchedRef.current && typeof window !== 'undefined' && fetchOriginalRef.current) {

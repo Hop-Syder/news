@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, status
 from services.supabase_client import get_supabase_admin
+from models.common import LogoDeleteResponse, LogoUploadResponse, MessageResponse
 from dependencies import get_current_user
 from supabase import Client
 import logging
@@ -10,7 +11,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/storage", tags=["Storage"])
 
 
-@router.post("/upload-logo", response_model=Dict[str, str])
+@router.post("/upload-logo", response_model=LogoUploadResponse)
 async def upload_logo(file: UploadFile = File(...), current_user: dict = Depends(get_current_user), supabase: Client = Depends(get_supabase_admin)):
     try:
         allowed_types = ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml']
@@ -26,7 +27,11 @@ async def upload_logo(file: UploadFile = File(...), current_user: dict = Depends
         if not result:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to upload file")
         public_url = supabase.storage.from_('logos').get_public_url(unique_filename)
-        return {"url": public_url, "filename": unique_filename, "message": "Logo uploaded successfully"}
+        return LogoUploadResponse(
+            url=public_url,
+            filename=unique_filename,
+            message="Logo uploaded successfully"
+        )
     except HTTPException:
         raise
     except Exception as e:
@@ -34,13 +39,13 @@ async def upload_logo(file: UploadFile = File(...), current_user: dict = Depends
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to upload logo: {str(e)}")
 
 
-@router.delete("/delete-logo/{filename}")
+@router.delete("/delete-logo/{filename}", response_model=LogoDeleteResponse)
 async def delete_logo(filename: str, current_user: dict = Depends(get_current_user), supabase: Client = Depends(get_supabase_admin)):
     try:
         if not filename.startswith(f"{current_user['id']}/"):
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to delete this file")
         result = supabase.storage.from_('logos').remove([filename])
-        return {"message": "Logo deleted successfully", "filename": filename}
+        return LogoDeleteResponse(message="Logo deleted successfully", filename=filename)
     except HTTPException:
         raise
     except Exception as e:

@@ -1,6 +1,5 @@
 // Section : Importations nécessaires
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -9,10 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { COUNTRIES, getCountryCities } from '@/data/countries';
 import { PROFILE_TYPES } from '@/data/profileTypes';
 import { Search, MapPin, Star, Crown, Phone, Mail } from 'lucide-react';
+import { apiClient } from '@/lib/httpClient';
 
 // Section : Logique métier et structure du module
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
 const PAGE_SIZE = 9;
 const CACHE_TTL = 5 * 60 * 1000;
 
@@ -60,16 +58,20 @@ const Annuaire = () => {
 
     setLoading(true);
     try {
-      const params = new URLSearchParams();
-      if (searchTerm) params.append('search', searchTerm);
-      if (normalizedFilters.country_code) params.append('country_code', normalizedFilters.country_code);
-      if (normalizedFilters.city) params.append('city', normalizedFilters.city);
-      if (normalizedFilters.profile_type) params.append('profile_type', normalizedFilters.profile_type);
-      if (normalizedFilters.min_rating) params.append('min_rating', normalizedFilters.min_rating);
-      params.append('limit', PAGE_SIZE.toString());
-      params.append('offset', ((page - 1) * PAGE_SIZE).toString());
+      const params = {
+        ...(searchTerm ? { search: searchTerm } : {}),
+        ...(normalizedFilters.country_code ? { country_code: normalizedFilters.country_code } : {}),
+        ...(normalizedFilters.city ? { city: normalizedFilters.city } : {}),
+        ...(normalizedFilters.profile_type ? { profile_type: normalizedFilters.profile_type } : {}),
+        ...(normalizedFilters.min_rating ? { min_rating: normalizedFilters.min_rating } : {}),
+        limit: PAGE_SIZE,
+        offset: (page - 1) * PAGE_SIZE
+      };
 
-      const response = await axios.get(`${API}/entrepreneurs?${params.toString()}`);
+      const response = await apiClient.get('/entrepreneurs', {
+        params,
+        skipErrorToast: true
+      });
       const data = Array.isArray(response.data) ? response.data : [];
       const more = data.length === PAGE_SIZE;
       setEntrepreneurs(data);
@@ -137,7 +139,9 @@ const Annuaire = () => {
       return contactCacheRef.current.get(entrepreneurId);
     }
 
-    const response = await axios.get(`${API}/entrepreneurs/${entrepreneurId}/contact`);
+    const response = await apiClient.get(`/entrepreneurs/${entrepreneurId}/contact`, {
+      skipErrorToast: true
+    });
     contactCacheRef.current.set(entrepreneurId, response.data);
     return response.data;
   }, []);

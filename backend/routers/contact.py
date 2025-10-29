@@ -32,7 +32,7 @@ async def create_contact_message(message_data: ContactMessageCreate, supabase: C
         result = supabase.table('contact_messages').insert(message_data.model_dump()).execute()
         if not result.data:
             raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to create contact message")
-        return result.data[0]
+        return ContactMessage.model_validate(result.data[0])
     except HTTPException:
         raise
     except Exception as e:

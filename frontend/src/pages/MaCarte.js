@@ -1,6 +1,5 @@
 // Section : Importations nécessaires
 import React, { useCallback, useEffect, useState, useRef } from 'react';
-import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -25,11 +24,9 @@ import {
 import { COUNTRIES, getCountryCities } from '@/data/countries';
 import { PROFILE_TYPES } from '@/data/profileTypes';
 import { AVAILABLE_TAGS } from '@/data/tags';
+import { apiClient } from '@/lib/httpClient';
 
 // Section : Logique métier et structure du module
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = BACKEND_URL ? `${BACKEND_URL}/api` : '';
-
 const MaCarte = () => {
   const { user, getAccessToken, sessionInfo } = useAuth();
   const location = useLocation();
@@ -109,16 +106,16 @@ const MaCarte = () => {
     );
   }, [sessionInfo?.session_id, location.pathname, location.search, navigate]);
 
-  const getAuthHeaders = useCallback(() => {
+  const ensureAuthToken = useCallback(() => {
     const token = getAccessToken?.();
     if (!token) {
       throw new Error('AUTH_MISSING');
     }
-    return { Authorization: `Bearer ${token}` };
+    return token;
   }, [getAccessToken]);
 
   const fetchProfile = useCallback(async () => {
-    if (!user || !API) {
+    if (!user) {
       setLoading(false);
       return;
     }
@@ -128,8 +125,8 @@ const MaCarte = () => {
     setSuccess('');
 
     try {
-      const headers = getAuthHeaders();
-      const { data } = await axios.get(`${API}/entrepreneurs/me`, { headers });
+      ensureAuthToken();
+      const { data } = await apiClient.get('/entrepreneurs/me');
 
       const normalizedData = {
         first_name: data.first_name || '',
@@ -187,7 +184,7 @@ const MaCarte = () => {
     } finally {
       setLoading(false);
     }
-  }, [API, getAuthHeaders, loggerError, user]);
+  }, [ensureAuthToken, loggerError, user]);
 
   useEffect(() => {
     fetchProfile();
@@ -276,17 +273,17 @@ const MaCarte = () => {
     }
 
     try {
-      const headers = getAuthHeaders();
+      ensureAuthToken();
       const payload = { ...formData };
       let response;
 
       if (creating) {
-        response = await axios.post(`${API}/entrepreneurs/me`, payload, { headers });
+        response = await apiClient.post('/entrepreneurs/me', payload);
         if (!silent) {
           setSuccess('✅ Carte créée avec succès ! Publiez-la pour la rendre visible.');
         }
       } else {
-        response = await axios.put(`${API}/entrepreneurs/me`, payload, { headers });
+        response = await apiClient.put('/entrepreneurs/me', payload);
         if (!silent) {
           setSuccess('✅ Modifications sauvegardées avec succès.');
         }
@@ -339,7 +336,7 @@ const MaCarte = () => {
         setSaving(false);
       }
     }
-  }, [API, formData, getAuthHeaders, isFormValid, loggerError, profile, serializeFormData, user?.email]);
+  }, [formData, ensureAuthToken, isFormValid, loggerError, profile, serializeFormData, user?.email]);
 
   const handleSave = async () => {
     await performSave({ silent: false });
@@ -382,12 +379,8 @@ const MaCarte = () => {
     setSuccess('');
 
     try {
-      const headers = getAuthHeaders();
-      const response = await axios.patch(
-        `${API}/entrepreneurs/me/status`,
-        { status: 'published' },
-        { headers }
-      );
+      ensureAuthToken();
+      const response = await apiClient.patch('/entrepreneurs/me/status', { status: 'published' });
       setProfile((prev) => ({ ...prev, status: 'published' }));
       setSuccess(response.data?.message || 'Profil publié !');
     } catch (err) {
@@ -409,12 +402,8 @@ const MaCarte = () => {
     setSuccess('');
 
     try {
-      const headers = getAuthHeaders();
-      const response = await axios.patch(
-        `${API}/entrepreneurs/me/status`,
-        { status: 'deactivated' },
-        { headers }
-      );
+      ensureAuthToken();
+      const response = await apiClient.patch('/entrepreneurs/me/status', { status: 'deactivated' });
       setProfile((prev) => ({ ...prev, status: 'deactivated' }));
       setSuccess(response.data?.message || 'Profil désactivé.');
     } catch (err) {
@@ -432,12 +421,8 @@ const MaCarte = () => {
     setSuccess('');
 
     try {
-      const headers = getAuthHeaders();
-      const response = await axios.patch(
-        `${API}/entrepreneurs/me/status`,
-        { status: 'draft' },
-        { headers }
-      );
+      ensureAuthToken();
+      const response = await apiClient.patch('/entrepreneurs/me/status', { status: 'draft' });
       setProfile((prev) => ({ ...prev, status: 'draft' }));
       setSuccess(response.data?.message || 'Profil enregistré en brouillon.');
     } catch (err) {
@@ -481,15 +466,14 @@ const MaCarte = () => {
     setSuccess('');
 
     try {
-      const headers = getAuthHeaders();
+      ensureAuthToken();
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
 
-      const response = await axios.post(`${API}/storage/upload-logo`, formDataUpload, {
+      const response = await apiClient.post('/storage/upload-logo', formDataUpload, {
         headers: {
-          ...headers,
           'Content-Type': 'multipart/form-data'
-        }
+        },
       });
 
       const url = response.data?.url;

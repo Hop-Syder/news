@@ -1,6 +1,5 @@
 // Section : Importations nécessaires
-import React, { useState } from 'react';
-import axios from 'axios';
+import React, { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
@@ -19,11 +18,9 @@ import {
   Trash2,
   User
 } from 'lucide-react';
+import { apiClient } from '@/lib/httpClient';
 
 // Section : Logique métier et structure du module
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = BACKEND_URL ? `${BACKEND_URL}/api` : '';
-
 const MonProfil = () => {
   const { user, getAccessToken, logout } = useAuth();
   const navigate = useNavigate();
@@ -35,6 +32,14 @@ const MonProfil = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+
+  const ensureAuthToken = useCallback(() => {
+    const token = getAccessToken?.();
+    if (!token) {
+      throw new Error('AUTH_MISSING');
+    }
+    return token;
+  }, [getAccessToken]);
 
   const handlePasswordChange = async (event) => {
     event.preventDefault();
@@ -83,19 +88,26 @@ const MonProfil = () => {
       return;
     }
 
+    try {
+      ensureAuthToken();
+    } catch (authError) {
+      if (authError.message === 'AUTH_MISSING') {
+        setError('Votre session a expiré. Veuillez vous reconnecter.');
+        return;
+      }
+      throw authError;
+    }
+
     setLoading(true);
 
     try {
-      const token = getAccessToken?.();
-      if (token) {
-        try {
-          await axios.delete(`${API}/entrepreneurs/me`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-        } catch (err) {
-          if (err.response?.status !== 404) {
-            throw err;
-          }
+      try {
+        await apiClient.delete('/entrepreneurs/me', {
+          skipErrorToast: true
+        });
+      } catch (err) {
+        if (err.response?.status !== 404) {
+          throw err;
         }
       }
 
@@ -103,7 +115,11 @@ const MonProfil = () => {
       navigate('/', { replace: true });
     } catch (err) {
       console.error('❌ [MonProfil] delete account:', err);
-      setError(err.response?.data?.detail || 'Suppression impossible pour le moment.');
+      if (err.message === 'AUTH_MISSING') {
+        setError('Votre session a expiré. Veuillez vous reconnecter.');
+      } else {
+        setError(err.response?.data?.detail || 'Suppression impossible pour le moment.');
+      }
     } finally {
       setLoading(false);
     }

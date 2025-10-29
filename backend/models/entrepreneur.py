@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
 from typing import List, Optional, Literal, Dict, Any
 from datetime import datetime
 
@@ -73,6 +73,9 @@ class EntrepreneurUpdate(BaseModel):
 
 class EntrepreneurPublic(BaseModel):
     """Public entrepreneur profile (without sensitive contact info)"""
+
+    model_config = ConfigDict(extra="ignore")
+
     id: str
     profile_type: str
     first_name: str
@@ -97,6 +100,9 @@ class EntrepreneurPublic(BaseModel):
 
 class EntrepreneurFull(EntrepreneurPublic):
     """Full entrepreneur profile (with all contact info)"""
+
+    model_config = ConfigDict(extra="ignore")
+
     user_id: str
     phone: str
     whatsapp: str
@@ -106,6 +112,9 @@ class EntrepreneurFull(EntrepreneurPublic):
 
 class EntrepreneurContactInfo(BaseModel):
     """Contact information schema (protected)"""
+
+    model_config = ConfigDict(extra="ignore")
+
     phone: str
     whatsapp: str
     email: str
@@ -133,3 +142,12 @@ class EntrepreneurDraftResponse(EntrepreneurDraftPayload):
 class EntrepreneurStatusUpdate(BaseModel):
     """Payload for updating entrepreneur publication status"""
     status: EntrepreneurStatus
+
+
+class EntrepreneurStatusChange(BaseModel):
+    """Réponse lors d'une mise à jour de statut"""
+
+    model_config = ConfigDict(extra="ignore")
+
+    status: EntrepreneurStatus
+    message: str

@@ -9,6 +9,7 @@ from models.entrepreneur import (
     EntrepreneurFull,
     EntrepreneurContactInfo,
     EntrepreneurStatusUpdate,
+    EntrepreneurStatusChange,
 )
 from services.supabase_client import get_supabase_admin
 from dependencies import get_current_user
@@ -67,7 +68,10 @@ async def list_entrepreneurs(search: Optional[str] = Query(None), country_code: 
         result = query.execute()
         if not result.data:
             return []
-        return [_sanitize_profile(item) for item in result.data]
+        return [
+            EntrepreneurPublic.model_validate(_sanitize_profile(item))
+            for item in result.data
+        ]
     except Exception as e:
         logger.error(f"List entrepreneurs error: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to retrieve entrepreneurs: {str(e)}")
@@ -80,7 +84,7 @@ async def get_my_profile(current_user: dict = Depends(get_current_user), supabas
         if not result.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrepreneur profile not found")
 
-        return _sanitize_profile(result.data)
+        return EntrepreneurFull.model_validate(_sanitize_profile(result.data))
     except HTTPException:
         raise
     except Exception as e:
@@ -109,7 +113,7 @@ async def create_my_profile(entrepreneur_data: EntrepreneurCreate, current_user:
         # Mettre à jour le flag sur user_profiles
         supabase.table('user_profiles').update({'has_profile': True}).eq('user_id', current_user['id']).execute()
 
-        return _sanitize_profile(result.data[0])
+        return EntrepreneurFull.model_validate(_sanitize_profile(result.data[0]))
     except HTTPException:
         raise
     except Exception as e:
@@ -138,7 +142,7 @@ async def update_my_profile(entrepreneur_data: EntrepreneurUpdate, current_user:
         if not result.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profil introuvable")
 
-        return _sanitize_profile(result.data[0])
+        return EntrepreneurFull.model_validate(_sanitize_profile(result.data[0]))
     except HTTPException:
         raise
     except Exception as e:
@@ -146,7 +150,7 @@ async def update_my_profile(entrepreneur_data: EntrepreneurUpdate, current_user:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to update profile: {str(e)}")
 
 
-@router.patch("/me/status")
+@router.patch("/me/status", response_model=EntrepreneurStatusChange)
 async def update_my_status(status_payload: EntrepreneurStatusUpdate, current_user: dict = Depends(get_current_user), supabase: Client = Depends(get_supabase_admin)):
     try:
         target_status = status_payload.status
@@ -167,7 +171,7 @@ async def update_my_status(status_payload: EntrepreneurStatusUpdate, current_use
             "deactivated": "Profil désactivé."
         }[target_status]
 
-        return {"status": target_status, "message": message}
+        return EntrepreneurStatusChange(status=target_status, message=message)
     except HTTPException:
         raise
     except Exception as e:
@@ -198,7 +202,7 @@ async def get_entrepreneur(entrepreneur_id: str, supabase: Client = Depends(get_
         result = supabase.table('entrepreneurs_public').select('*').eq('id', entrepreneur_id).single().execute()
         if not result.data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrepreneur non trouvé")
-        return _sanitize_profile(result.data)
+        return EntrepreneurPublic.model_validate(_sanitize_profile(result.data))
     except HTTPException:
         raise
     except Exception as e:
@@ -212,7 +216,7 @@ async def get_entrepreneur_contact(entrepreneur_id: str, supabase: Client = Depe
         result = supabase.rpc('get_entrepreneur_contacts', {'entrepreneur_id': entrepreneur_id}).execute()
         if not result.data or len(result.data) == 0:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrepreneur non trouvé")
-        return result.data[0]
+        return EntrepreneurContactInfo.model_validate(result.data[0])
     except HTTPException:
         raise
     except Exception as e:

@@ -1,6 +1,5 @@
 // Section : Importations nécessaires
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -8,11 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Phone, Mail, MapPin, CheckCircle2 } from 'lucide-react';
+import { apiClient } from '@/lib/httpClient';
 
 // Section : Logique métier et structure du module
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
-
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
@@ -38,7 +35,7 @@ const Contact = () => {
     setSuccess(false);
 
     try {
-      await axios.post(`${API}/contact`, formData);
+      await apiClient.post('/contact', formData, { skipErrorToast: true });
       setSuccess(true);
       setFormData({
         name: '',

@@ -1,4 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, status
+from models.common import MessageResponse, TokenRefreshResponse
 from models.user import UserCreate, UserLogin, UserResponse, AuthResponse
 from services.supabase_client import get_supabase_admin
 from dependencies import get_current_user
@@ -157,7 +158,7 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     )
 
 
-@router.post("/logout")
+@router.post("/logout", response_model=MessageResponse)
 async def logout(
     current_user: dict = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_admin)
@@ -170,14 +171,14 @@ async def logout(
     """
     try:
         # Supabase handles token revocation internally
-        return {"message": "Logout successful"}
+        return MessageResponse(message="Logout successful")
     except Exception as e:
         logger.error(f"Logout error: {str(e)}")
         # Even if server logout fails, client should remove token
-        return {"message": "Logout completed (client-side)"}
+        return MessageResponse(message="Logout completed (client-side)")
 
 
-@router.post("/refresh")
+@router.post("/refresh", response_model=TokenRefreshResponse)
 async def refresh_token(
     current_user: dict = Depends(get_current_user),
     supabase: Client = Depends(get_supabase_admin)
@@ -198,11 +199,11 @@ async def refresh_token(
                 detail="Token refresh failed"
             )
         
-        return {
-            "access_token": session.access_token,
-            "token_type": "bearer",
-            "expires_at": str(session.expires_at)
-        }
+        return TokenRefreshResponse(
+            access_token=session.access_token,
+            token_type="bearer",
+            expires_at=str(session.expires_at) if getattr(session, "expires_at", None) else None
+        )
     except Exception as e:
         logger.error(f"Token refresh error: {str(e)}")
         raise HTTPException(

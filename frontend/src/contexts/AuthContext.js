@@ -8,6 +8,7 @@ import {
   getSessionMeta,
   LOGOUT_EVENT_KEY,
 } from '@/utils/session';
+import { setAuthTokenResolver } from '@/lib/httpClient';
 
 // Section : Logique métier et structure du module
 const AuthContext = createContext(null);
@@ -152,6 +153,11 @@ export const AuthProvider = ({ children }) => {
       window.clearInterval(intervalId);
     };
   }, [user, clearAuthState, ensureSession, clearSessionCookie, setSessionInfo]);
+
+  useEffect(() => {
+    setAuthTokenResolver(() => session?.access_token || null);
+    return () => setAuthTokenResolver(null);
+  }, [session?.access_token]);
 
   const register = async (email, password, firstName, lastName) => {
     try {

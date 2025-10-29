@@ -12,6 +12,7 @@ import EmailConfirmation from "@/pages/EmailConfirmation";
 import MaCarte from "@/pages/MaCarte";
 import MonProfil from "@/pages/MonProfil";
 import Connexion from "@/pages/Connexion";
+import { Toaster } from "@/components/ui/sonner";
 
 // Section : Logique métier et structure du module
 const ProtectedRoute = ({ children }) => {
@@ -67,6 +68,7 @@ function App() {
               </Routes>
             </main>
             <Footer />
+            <Toaster richColors position="top-right" />
           </div>
         </IdleTimeoutProvider>
       </BrowserRouter>
