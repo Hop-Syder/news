@@ -1,5 +1,5 @@
 // Section : Importations nécessaires
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -30,20 +30,37 @@ import { AVAILABLE_TAGS } from '@/data/tags';
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = BACKEND_URL ? `${BACKEND_URL}/api` : '';
 
-const LOCKED_FIELDS = ['first_name', 'last_name', 'company_name', 'email', 'phone'];
-
 const MaCarte = () => {
   const { user, getAccessToken, sessionInfo } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [isFirstCreation, setIsFirstCreation] = useState(true);
   const [profile, setProfile] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [logoUploading, setLogoUploading] = useState(false);
+  const [logoPreview, setLogoPreview] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const lastSavedSnapshotRef = useRef('');
+
+  const serializeFormData = useCallback((data) => JSON.stringify({
+    first_name: data.first_name || '',
+    last_name: data.last_name || '',
+    company_name: data.company_name || '',
+    email: data.email || '',
+    phone: data.phone || '',
+    profile_type: data.profile_type || '',
+    activity_name: data.activity_name || '',
+    description: data.description || '',
+    tags: Array.isArray(data.tags) ? data.tags : [],
+    whatsapp: data.whatsapp || '',
+    website: data.website || '',
+    country_code: data.country_code || '',
+    city: data.city || '',
+    logo_url: data.logo_url || ''
+  }), []);
 
   const [formData, setFormData] = useState({
     first_name: '',
@@ -61,6 +78,13 @@ const MaCarte = () => {
     city: '',
     logo_url: ''
   });
+
+  const profileStatus = profile?.status ?? 'draft';
+  const isNewProfile = !profile;
+  const isDraft = profileStatus === 'draft';
+  const isPublished = profileStatus === 'published';
+  const isDeactivated = profileStatus === 'deactivated';
+  const isLocked = Boolean(profile?.first_saved_at);
 
   const loggerError = useCallback((label, err) => {
     console.error(`❌ [MaCarte] ${label}:`, err.response?.data || err.message || err);
@@ -107,8 +131,7 @@ const MaCarte = () => {
       const headers = getAuthHeaders();
       const { data } = await axios.get(`${API}/entrepreneurs/me`, { headers });
 
-      setProfile(data);
-      setFormData({
+      const normalizedData = {
         first_name: data.first_name || '',
         last_name: data.last_name || '',
         company_name: data.company_name || '',
@@ -123,18 +146,38 @@ const MaCarte = () => {
         country_code: data.country_code || '',
         city: data.city || '',
         logo_url: data.logo_url || ''
-      });
-      setIsFirstCreation(false);
-      setEditMode(false);
+      };
+
+      setProfile(data);
+      setFormData(normalizedData);
+      setLogoPreview(normalizedData.logo_url || '');
+      lastSavedSnapshotRef.current = serializeFormData(normalizedData);
+      setHasUnsavedChanges(false);
+      setIsEditing(false);
     } catch (err) {
       if (err.response?.status === 404) {
-        setIsFirstCreation(true);
-        setEditMode(true);
         setProfile(null);
-        setFormData((prev) => ({
-          ...prev,
-          email: user?.email || ''
-        }));
+        setIsEditing(true);
+        setLogoPreview('');
+        const emptyState = {
+          first_name: '',
+          last_name: '',
+          company_name: '',
+          email: user?.email || '',
+          phone: '',
+          profile_type: '',
+          activity_name: '',
+          description: '',
+          tags: [],
+          whatsapp: '',
+          website: '',
+          country_code: '',
+          city: '',
+          logo_url: ''
+        };
+        setFormData(emptyState);
+        lastSavedSnapshotRef.current = serializeFormData(emptyState);
+        setHasUnsavedChanges(false);
       } else if (err.message === 'AUTH_MISSING') {
         setError('Votre session a expiré. Veuillez vous reconnecter.');
       } else {
@@ -156,13 +199,34 @@ const MaCarte = () => {
     setSuccess('');
   };
 
-  const addTag = (tag) => {
-    setFormData((prev) => {
-      if (prev.tags.includes(tag) || prev.tags.length >= 5) {
-        return prev;
+  useEffect(() => {
+    const snapshot = serializeFormData(formData);
+    if (lastSavedSnapshotRef.current === '') {
+      lastSavedSnapshotRef.current = snapshot;
+      if (hasUnsavedChanges) {
+        setHasUnsavedChanges(false);
       }
-      return { ...prev, tags: [...prev.tags, tag] };
-    });
+      return;
+    }
+
+    if (snapshot !== lastSavedSnapshotRef.current) {
+      if (!hasUnsavedChanges) {
+        setHasUnsavedChanges(true);
+      }
+    } else if (hasUnsavedChanges) {
+      setHasUnsavedChanges(false);
+    }
+  }, [formData, serializeFormData, hasUnsavedChanges]);
+
+  const addTag = (tag) => {
+    if (formData.tags.includes(tag)) {
+      return;
+    }
+    if (formData.tags.length >= 5) {
+      setError('Maximum 5 compétences autorisées.');
+      return;
+    }
+    setFormData((prev) => ({ ...prev, tags: [...prev.tags, tag] }));
   };
 
   const removeTag = (tag) => {
@@ -172,65 +236,146 @@ const MaCarte = () => {
     }));
   };
 
-  const validateForm = () => {
+  const isFormValid = useCallback((options = { showErrors: true }) => {
+    const { showErrors = true } = options;
+
     if (!formData.first_name || !formData.last_name || !formData.phone || !formData.profile_type || !formData.country_code || !formData.city) {
-      setError('Merci de remplir tous les champs obligatoires.');
+      if (showErrors) {
+        setError('Merci de remplir tous les champs obligatoires.');
+      }
       return false;
     }
 
     if (!formData.description || formData.description.length > 200) {
-      setError('La description doit contenir entre 1 et 200 caractères.');
+      if (showErrors) {
+        setError('La description doit contenir entre 1 et 200 caractères.');
+      }
       return false;
     }
 
     if (formData.tags.length === 0) {
-      setError('Ajoutez au moins une compétence.');
+      if (showErrors) {
+        setError('Ajoutez au moins une compétence.');
+      }
       return false;
     }
 
     return true;
-  };
+  }, [formData]);
 
-  const handleSave = async () => {
-    if (!validateForm()) {
-      return;
+  const performSave = useCallback(async ({ silent = false } = {}) => {
+    if (!isFormValid({ showErrors: !silent })) {
+      return false;
     }
 
-    setSaving(true);
-    setError('');
-    setSuccess('');
+    const creating = !profile;
+    if (!silent) {
+      setSaving(true);
+      setError('');
+      setSuccess('');
+    }
 
     try {
       const headers = getAuthHeaders();
       const payload = { ...formData };
       let response;
 
-      if (isFirstCreation) {
+      if (creating) {
         response = await axios.post(`${API}/entrepreneurs/me`, payload, { headers });
-        setIsFirstCreation(false);
-        setSuccess('✅ Carte créée avec succès ! Publiez-la pour la rendre visible.');
+        if (!silent) {
+          setSuccess('✅ Carte créée avec succès ! Publiez-la pour la rendre visible.');
+        }
       } else {
         response = await axios.put(`${API}/entrepreneurs/me`, payload, { headers });
-        setSuccess('✅ Modifications sauvegardées avec succès.');
+        if (!silent) {
+          setSuccess('✅ Modifications sauvegardées avec succès.');
+        }
       }
 
       if (response?.data) {
+        const normalizedData = {
+          first_name: response.data.first_name || '',
+          last_name: response.data.last_name || '',
+          company_name: response.data.company_name || '',
+          email: response.data.email || user?.email || '',
+          phone: response.data.phone || '',
+          profile_type: response.data.profile_type || '',
+          activity_name: response.data.activity_name || '',
+          description: response.data.description || '',
+          tags: response.data.tags || [],
+          whatsapp: response.data.whatsapp || '',
+          website: response.data.website || '',
+          country_code: response.data.country_code || '',
+          city: response.data.city || '',
+          logo_url: response.data.logo_url || ''
+        };
+
         setProfile(response.data);
-        setFormData((prev) => ({ ...prev, ...response.data }));
+        setFormData(normalizedData);
+        setLogoPreview(normalizedData.logo_url || '');
+        lastSavedSnapshotRef.current = serializeFormData(normalizedData);
+        setHasUnsavedChanges(false);
       }
 
-      setEditMode(false);
+      if (!silent) {
+        setIsEditing(false);
+      }
+
+      return true;
     } catch (err) {
       if (err.message === 'AUTH_MISSING') {
-        setError('Votre session a expiré. Veuillez vous reconnecter.');
+        if (!silent) {
+          setError('Votre session a expiré. Veuillez vous reconnecter.');
+        }
       } else {
         loggerError('handleSave', err);
-        setError(err.response?.data?.detail || 'Erreur lors de la sauvegarde.');
+        if (!silent) {
+          setError(err.response?.data?.detail || 'Erreur lors de la sauvegarde.');
+        }
       }
+      return false;
     } finally {
-      setSaving(false);
+      if (!silent) {
+        setSaving(false);
+      }
     }
+  }, [API, formData, getAuthHeaders, isFormValid, loggerError, profile, serializeFormData, user?.email]);
+
+  const handleSave = async () => {
+    await performSave({ silent: false });
   };
+
+  const essentialFieldsFilled = Boolean(
+    formData.first_name &&
+    formData.last_name &&
+    formData.phone &&
+    formData.profile_type &&
+    formData.country_code &&
+    formData.city
+  );
+
+  const autoSave = useCallback(async () => {
+    if (!hasUnsavedChanges || !essentialFieldsFilled) {
+      return;
+    }
+    await performSave({ silent: true });
+  }, [hasUnsavedChanges, essentialFieldsFilled, performSave]);
+
+  useEffect(() => {
+    if (!hasUnsavedChanges || !essentialFieldsFilled || logoUploading || saving) {
+      return;
+    }
+
+    if (!isEditing && !isNewProfile) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      autoSave();
+    }, 30 * 1000);
+
+    return () => window.clearTimeout(timer);
+  }, [autoSave, essentialFieldsFilled, hasUnsavedChanges, isEditing, isNewProfile, logoUploading, saving]);
 
   const handlePublish = async () => {
     setError('');
@@ -294,16 +439,16 @@ const MaCarte = () => {
         { headers }
       );
       setProfile((prev) => ({ ...prev, status: 'draft' }));
-    setSuccess(response.data?.message || 'Profil enregistré en brouillon.');
-  } catch (err) {
-    if (err.message === 'AUTH_MISSING') {
-      setError('Votre session a expiré. Veuillez vous reconnecter.');
-    } else {
-      loggerError('handleDraft', err);
-      setError(err.response?.data?.detail || "Impossible de repasser en brouillon.");
+      setSuccess(response.data?.message || 'Profil enregistré en brouillon.');
+    } catch (err) {
+      if (err.message === 'AUTH_MISSING') {
+        setError('Votre session a expiré. Veuillez vous reconnecter.');
+      } else {
+        loggerError('handleDraft', err);
+        setError(err.response?.data?.detail || "Impossible de repasser en brouillon.");
+      }
     }
-  }
-};
+  };
 
   const handleLogoUpload = async (event) => {
     const file = event.target.files?.[0];
@@ -322,6 +467,14 @@ const MaCarte = () => {
       event.target.value = '';
       return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        setLogoPreview(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
 
     setLogoUploading(true);
     setError('');
@@ -342,6 +495,7 @@ const MaCarte = () => {
       const url = response.data?.url;
       if (url) {
         handleChange('logo_url', url);
+        setLogoPreview(url);
         setSuccess('Logo téléchargé avec succès.');
       } else {
         setError("Impossible de récupérer l'URL du logo.");
@@ -376,7 +530,7 @@ const MaCarte = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-bleu-marine">Ma Carte Entrepreneur</h1>
           <p className="text-gray-600 mt-2">
-            {isFirstCreation
+            {isNewProfile
               ? "Créez votre carte pour être visible dans l'annuaire."
               : "Gérez votre visibilité et vos informations publiques."}
           </p>
@@ -396,22 +550,22 @@ const MaCarte = () => {
           </Alert>
         )}
 
-        {!isFirstCreation && !editMode && profile && (
+        {!isNewProfile && !isEditing && profile && (
           <Card className="mb-8 border-2 border-jaune-soleil shadow-xl">
             <CardContent className="p-8">
               <div className="flex justify-between items-start mb-6">
                 <Badge
                   className={
-                    profile.status === 'published'
+                    isPublished
                       ? 'bg-vert-emeraude'
-                      : profile.status === 'deactivated'
+                      : isDeactivated
                         ? 'bg-red-500'
                         : 'bg-gray-500'
                   }
                 >
-                  {profile.status === 'published'
+                  {isPublished
                     ? '✅ Publié'
-                    : profile.status === 'deactivated'
+                    : isDeactivated
                       ? '🔴 Désactivé'
                       : '📝 Brouillon'}
                 </Badge>
@@ -428,6 +582,8 @@ const MaCarte = () => {
                   <img
                     src={profile.logo_url}
                     alt="Logo"
+                    loading="lazy"
+                    decoding="async"
                     className="w-32 h-32 rounded-full object-cover border-4 border-jaune-soleil"
                   />
                 ) : (
@@ -481,22 +637,22 @@ const MaCarte = () => {
           </Card>
         )}
 
-        {!isFirstCreation && !editMode && profile && (
+        {!isNewProfile && !isEditing && profile && (
           <div className="flex flex-wrap justify-center gap-4 mb-10">
-            <Button onClick={() => setEditMode(true)} className="bg-bleu-marine text-white hover:bg-bleu-marine/90">
+            <Button onClick={() => setIsEditing(true)} className="bg-bleu-marine text-white hover:bg-bleu-marine/90">
               <Edit className="w-4 h-4 mr-2" /> Modifier
             </Button>
-            {profile.status !== 'published' && (
+            {!isPublished && (
               <Button onClick={handlePublish} className="bg-vert-emeraude text-white hover:bg-vert-emeraude/90">
                 <Eye className="w-4 h-4 mr-2" /> Publier
               </Button>
             )}
-            {profile.status === 'published' && (
+            {isPublished && (
               <Button onClick={handleDeactivate} variant="destructive">
                 <EyeOff className="w-4 h-4 mr-2" /> Désactiver
               </Button>
             )}
-            {profile.status !== 'draft' && (
+            {!isDraft && (
               <Button onClick={handleDraft} variant="outline">
                 Sauvegarder en brouillon
               </Button>
@@ -504,10 +660,10 @@ const MaCarte = () => {
           </div>
         )}
 
-        {(editMode || isFirstCreation) && (
+        {(isEditing || isNewProfile) && (
           <Card>
             <CardHeader>
-              <CardTitle>{isFirstCreation ? 'Créer ma carte' : 'Modifier ma carte'}</CardTitle>
+              <CardTitle>{isNewProfile ? 'Créer ma carte' : 'Modifier ma carte'}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="bg-red-50 border-2 border-red-500 rounded-lg p-6">
@@ -526,8 +682,8 @@ const MaCarte = () => {
                     <Input
                       value={formData.first_name}
                       onChange={(e) => handleChange('first_name', e.target.value)}
-                      disabled={!isFirstCreation}
-                      className={!isFirstCreation ? 'bg-gray-100 cursor-not-allowed' : ''}
+                      disabled={isLocked}
+                      className={isLocked ? 'bg-gray-100 cursor-not-allowed' : ''}
                     />
                   </div>
                   <div>
@@ -535,8 +691,8 @@ const MaCarte = () => {
                     <Input
                       value={formData.last_name}
                       onChange={(e) => handleChange('last_name', e.target.value)}
-                      disabled={!isFirstCreation}
-                      className={!isFirstCreation ? 'bg-gray-100 cursor-not-allowed' : ''}
+                      disabled={isLocked}
+                      className={isLocked ? 'bg-gray-100 cursor-not-allowed' : ''}
                     />
                   </div>
                   <div>
@@ -544,8 +700,8 @@ const MaCarte = () => {
                     <Input
                       value={formData.company_name}
                       onChange={(e) => handleChange('company_name', e.target.value)}
-                      disabled={!isFirstCreation}
-                      className={!isFirstCreation ? 'bg-gray-100 cursor-not-allowed' : ''}
+                      disabled={isLocked}
+                      className={isLocked ? 'bg-gray-100 cursor-not-allowed' : ''}
                     />
                   </div>
                   <div>
@@ -554,8 +710,8 @@ const MaCarte = () => {
                       type="email"
                       value={formData.email}
                       onChange={(e) => handleChange('email', e.target.value)}
-                      disabled={!isFirstCreation}
-                      className={!isFirstCreation ? 'bg-gray-100 cursor-not-allowed' : ''}
+                      disabled={isLocked}
+                      className={isLocked ? 'bg-gray-100 cursor-not-allowed' : ''}
                     />
                   </div>
                   <div>
@@ -563,8 +719,8 @@ const MaCarte = () => {
                     <Input
                       value={formData.phone}
                       onChange={(e) => handleChange('phone', e.target.value)}
-                      disabled={!isFirstCreation}
-                      className={!isFirstCreation ? 'bg-gray-100 cursor-not-allowed' : ''}
+                      disabled={isLocked}
+                      className={isLocked ? 'bg-gray-100 cursor-not-allowed' : ''}
                       placeholder="+229 XX XX XX XX"
                     />
                   </div>
@@ -704,13 +860,14 @@ const MaCarte = () => {
                   <Label>Logo / Photo (PNG, JPG, WEBP, SVG) - 2 Mo max</Label>
                   <div className="flex items-center gap-3">
                     <Input type="file" accept="image/png,image/jpeg,image/jpg,image/webp,image/svg+xml" onChange={handleLogoUpload} disabled={logoUploading} />
-                    {formData.logo_url && (
+                    {(formData.logo_url || logoPreview) && (
                       <Button
                         type="button"
                         variant="outline"
                         onClick={() => {
                           handleChange('logo_url', '');
                           setSuccess('');
+                          setLogoPreview('');
                         }}
                       >
                         <X className="w-4 h-4" />
@@ -721,21 +878,37 @@ const MaCarte = () => {
                     <Upload className="w-3 h-3" />
                     {logoUploading ? 'Téléversement en cours...' : 'Sélectionnez un fichier (2 Mo max). Un lien public sera généré automatiquement.'}
                   </p>
-                  {formData.logo_url && (
-                    <p className="text-xs text-gray-500 mt-1">
-                      Logo actuel : <a href={formData.logo_url} target="_blank" rel="noopener noreferrer" className="text-bleu-marine underline">Voir</a>
-                    </p>
+                  {(logoPreview || formData.logo_url) && (
+                    <div className="mt-3 flex items-center gap-4">
+                      <img
+                        src={logoPreview || formData.logo_url}
+                        alt="Aperçu du logo"
+                        loading="lazy"
+                        decoding="async"
+                        className="w-20 h-20 rounded-full object-cover border-2 border-jaune-soleil"
+                      />
+                      {formData.logo_url && (
+                        <a
+                          href={formData.logo_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-bleu-marine underline"
+                        >
+                          Voir le logo publié
+                        </a>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
 
               <div className="flex flex-wrap justify-end gap-3 pt-6 border-t">
-                {!isFirstCreation && (
+                {!isNewProfile && (
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      setEditMode(false);
+                      setIsEditing(false);
                       fetchProfile();
                     }}
                   >
@@ -756,7 +929,7 @@ const MaCarte = () => {
                   ) : (
                     <>
                       <Save className="w-4 h-4 mr-2" />
-                      {isFirstCreation ? 'Créer ma carte' : 'Sauvegarder'}
+                      {isNewProfile ? 'Créer ma carte' : 'Sauvegarder'}
                     </>
                   )}
                 </Button>
@@ -765,7 +938,7 @@ const MaCarte = () => {
           </Card>
         )}
 
-        {isFirstCreation && (
+        {isNewProfile && (
           <Card className="mt-8 bg-bleu-marine/5">
             <CardContent className="p-6 space-y-4">
               <h3 className="text-lg font-semibold text-bleu-marine">Comment ça marche ?</h3>

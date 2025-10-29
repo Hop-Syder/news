@@ -1,5 +1,5 @@
 // Section : Importations nécessaires
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -32,29 +32,9 @@ const MonProfil = () => {
     confirmPassword: ''
   });
   const [deleteConfirm, setDeleteConfirm] = useState('');
-  const [profileId, setProfileId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-
-  useEffect(() => {
-    const fetchProfileId = async () => {
-      if (!API) return;
-      try {
-        const token = getAccessToken?.();
-        if (!token) return;
-        const response = await axios.get(`${API}/entrepreneurs/me`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setProfileId(response.data?.id || null);
-      } catch (err) {
-        // Pas de profil, rien de grave
-        setProfileId(null);
-      }
-    };
-
-    fetchProfileId();
-  }, [getAccessToken, API]);
 
   const handlePasswordChange = async (event) => {
     event.preventDefault();
@@ -107,10 +87,16 @@ const MonProfil = () => {
 
     try {
       const token = getAccessToken?.();
-      if (token && profileId) {
-        await axios.delete(`${API}/entrepreneurs/${profileId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+      if (token) {
+        try {
+          await axios.delete(`${API}/entrepreneurs/me`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        } catch (err) {
+          if (err.response?.status !== 404) {
+            throw err;
+          }
+        }
       }
 
       await logout('manual');

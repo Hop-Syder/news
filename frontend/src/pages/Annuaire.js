@@ -1,5 +1,5 @@
 // Section : Importations nécessaires
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,20 +13,24 @@ import { Search, MapPin, Star, Crown, Phone, Mail } from 'lucide-react';
 // Section : Logique métier et structure du module
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+const PAGE_SIZE = 9;
+const CACHE_TTL = 5 * 60 * 1000;
 
 const Annuaire = () => {
   const [entrepreneurs, setEntrepreneurs] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     location: '',
     city: '',
     profileType: '',
     minRating: ''
   });
-  const [selectedContact, setSelectedContact] = useState(null);
-  const [contactInfo, setContactInfo] = useState(null);
-  const [showContactModal, setShowContactModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const cacheRef = useRef(new Map());
+  const contactCacheRef = useRef(new Map());
 
   const tagColorClasses = [
     'bg-rose-100 text-rose-700',
@@ -36,65 +40,132 @@ const Annuaire = () => {
     'bg-indigo-100 text-indigo-700'
   ];
 
-  useEffect(() => {
-    fetchEntrepreneurs();
-  }, []);
+  const fetchEntrepreneurs = useCallback(async () => {
+    const normalizedFilters = {
+      country_code: filters.location || '',
+      city: filters.city || '',
+      profile_type: filters.profileType || '',
+      min_rating: filters.minRating || ''
+    };
 
-  const fetchEntrepreneurs = async () => {
+    const cacheKey = JSON.stringify({ search: searchTerm, filters: normalizedFilters, page });
+    const now = Date.now();
+    const cachedEntry = cacheRef.current.get(cacheKey);
+    if (cachedEntry && now - cachedEntry.timestamp < CACHE_TTL) {
+      setEntrepreneurs(cachedEntry.data);
+      setHasMore(cachedEntry.hasMore);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const params = new URLSearchParams();
-      if (search) params.append('search', search);
-      if (filters.location) params.append('location', filters.location);
-      if (filters.city) params.append('city', filters.city);
-      if (filters.profileType) params.append('profileType', filters.profileType);
-      if (filters.minRating) params.append('minRating', filters.minRating);
-      params.append('limit', '50');
+      if (searchTerm) params.append('search', searchTerm);
+      if (normalizedFilters.country_code) params.append('country_code', normalizedFilters.country_code);
+      if (normalizedFilters.city) params.append('city', normalizedFilters.city);
+      if (normalizedFilters.profile_type) params.append('profile_type', normalizedFilters.profile_type);
+      if (normalizedFilters.min_rating) params.append('min_rating', normalizedFilters.min_rating);
+      params.append('limit', PAGE_SIZE.toString());
+      params.append('offset', ((page - 1) * PAGE_SIZE).toString());
 
       const response = await axios.get(`${API}/entrepreneurs?${params.toString()}`);
-      setEntrepreneurs(response.data);
+      const data = Array.isArray(response.data) ? response.data : [];
+      const more = data.length === PAGE_SIZE;
+      setEntrepreneurs(data);
+      setHasMore(more);
+      cacheRef.current.set(cacheKey, { data, hasMore: more, timestamp: now });
     } catch (error) {
       console.error('Failed to fetch entrepreneurs:', error);
+      setHasMore(false);
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters, page, searchTerm]);
+
+  useEffect(() => {
+    fetchEntrepreneurs();
+  }, [fetchEntrepreneurs]);
 
   const handleSearch = () => {
-    fetchEntrepreneurs();
+    const normalized = searchInput.trim();
+    cacheRef.current.clear();
+    setEntrepreneurs([]);
+    setHasMore(false);
+    if (searchTerm !== normalized) {
+      setSearchTerm(normalized);
+    } else if (page === 1) {
+      fetchEntrepreneurs();
+    }
+    if (page !== 1) {
+      setPage(1);
+    }
   };
 
   const handleFilterChange = (key, value) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value,
-      ...(key === 'location' ? { city: '' } : {})
-    }));
+    const normalizedValue = value === 'all' ? '' : value;
+    setFilters((prev) => {
+      const next = {
+        ...prev,
+        [key]: normalizedValue,
+      };
+      if (key === 'location') {
+        next.city = '';
+      }
+      return next;
+    });
+    cacheRef.current.clear();
+    setPage(1);
+    setEntrepreneurs([]);
+    setHasMore(false);
   };
 
-  const openWhatsApp = async (entrepreneurId) => {
+  const goToPreviousPage = () => {
+    if (page > 1) {
+      setPage((prev) => Math.max(1, prev - 1));
+    }
+  };
+
+  const goToNextPage = () => {
+    if (hasMore) {
+      setPage((prev) => prev + 1);
+    }
+  };
+
+  const fetchContactInfo = useCallback(async (entrepreneurId) => {
+    if (contactCacheRef.current.has(entrepreneurId)) {
+      return contactCacheRef.current.get(entrepreneurId);
+    }
+
+    const response = await axios.get(`${API}/entrepreneurs/${entrepreneurId}/contact`);
+    contactCacheRef.current.set(entrepreneurId, response.data);
+    return response.data;
+  }, []);
+
+  const openWhatsApp = useCallback(async (entrepreneurId) => {
     try {
-      const response = await axios.get(`${API}/entrepreneurs/${entrepreneurId}/contact`);
-      const { whatsapp } = response.data;
-      // Nettoyer le numéro (enlever espaces, tirets, etc.)
-      const cleanNumber = whatsapp.replace(/[^\d+]/g, '');
-      // Ouvrir WhatsApp
+      const info = await fetchContactInfo(entrepreneurId);
+      if (!info?.whatsapp) {
+        return;
+      }
+      const cleanNumber = info.whatsapp.replace(/[^\d+]/g, '');
       window.open(`https://wa.me/${cleanNumber}`, '_blank');
     } catch (error) {
       console.error('Failed to fetch contact info:', error);
     }
-  };
+  }, [fetchContactInfo]);
 
-  const openEmail = async (entrepreneurId) => {
+  const openEmail = useCallback(async (entrepreneurId) => {
     try {
-      const response = await axios.get(`${API}/entrepreneurs/${entrepreneurId}/contact`);
-      const { email } = response.data;
-      // Ouvrir client email
-      window.location.href = `mailto:${email}`;
+      const info = await fetchContactInfo(entrepreneurId);
+      if (!info?.email) {
+        return;
+      }
+      window.location.href = `mailto:${info.email}`;
     } catch (error) {
       console.error('Failed to fetch contact info:', error);
     }
-  };
+  }, [fetchContactInfo]);
 
   const clearFilters = () => {
     setFilters({
@@ -103,7 +174,13 @@ const Annuaire = () => {
       profileType: '',
       minRating: ''
     });
-    setSearch('');
+    setSearchInput('');
+    setSearchTerm('');
+    setPage(1);
+    cacheRef.current.clear();
+    contactCacheRef.current.clear();
+    setHasMore(false);
+    setEntrepreneurs([]);
   };
 
   const openProfile = (entrepreneurId) => {
@@ -131,9 +208,13 @@ const Annuaire = () => {
               <div className="flex gap-4">
                 <Input
                   placeholder="Rechercher par nom, entreprise, compétences..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      handleSearch();
+                    }
+                  }}
                   className="flex-1"
                   data-testid="search-input"
                 />
@@ -154,7 +235,7 @@ const Annuaire = () => {
                     <SelectValue placeholder="Pays" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tous les pays</SelectItem>
+                    <SelectItem value="">Tous les pays</SelectItem>
                     {Object.values(COUNTRIES).map(country => (
                       <SelectItem key={country.code} value={country.code}>
                         {country.flag} {country.name}
@@ -172,8 +253,8 @@ const Annuaire = () => {
                     <SelectValue placeholder="Ville" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Toutes les villes</SelectItem>
-                    {filters.location && filters.location !== 'all' &&
+                    <SelectItem value="">Toutes les villes</SelectItem>
+                    {filters.location &&
                       getCountryCities(filters.location).map(city => (
                         <SelectItem key={city} value={city}>
                           {city}
@@ -188,7 +269,7 @@ const Annuaire = () => {
                     <SelectValue placeholder="Type de profil" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tous les types</SelectItem>
+                    <SelectItem value="">Tous les types</SelectItem>
                     {PROFILE_TYPES.map(type => (
                       <SelectItem key={type.value} value={type.value}>
                         {type.icon} {type.label}
@@ -202,7 +283,7 @@ const Annuaire = () => {
                     <SelectValue placeholder="Note minimale" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Toutes les notes</SelectItem>
+                    <SelectItem value="">Toutes les notes</SelectItem>
                     <SelectItem value="4">4+ étoiles</SelectItem>
                     <SelectItem value="3">3+ étoiles</SelectItem>
                   </SelectContent>
@@ -219,10 +300,15 @@ const Annuaire = () => {
         </Card>
 
         {/* Results */}
-        <div className="mb-4">
+        <div className="mb-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <p className="text-gray-600">
-            {loading ? 'Chargement...' : `${entrepreneurs.length} profil(s) trouvé(s)`}
+            {loading ? 'Chargement...' : `Page ${page} • ${entrepreneurs.length} profil(s) affiché(s)`}
           </p>
+          {!loading && (
+            <span className="text-sm text-gray-500">
+              Résultats mis en cache pendant 5 minutes pour des chargements rapides
+            </span>
+          )}
         </div>
 
         {/* Entrepreneurs Grid */}
@@ -255,6 +341,8 @@ const Annuaire = () => {
                         <img
                           src={entrepreneur.logo_url}
                           alt={entrepreneur.company_name || fullName || 'Logo'}
+                          loading="lazy"
+                          decoding="async"
                           className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-md"
                         />
                       </div>
@@ -337,6 +425,30 @@ const Annuaire = () => {
             );
           })}
         </div>
+
+        {(entrepreneurs.length > 0 || page > 1) && (
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <span className="text-sm text-gray-500">
+              Page {page}{!hasMore && entrepreneurs.length < PAGE_SIZE ? ' • Dernière page' : ''}
+            </span>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                onClick={goToPreviousPage}
+                disabled={page === 1 || loading}
+              >
+                Précédent
+              </Button>
+              <Button
+                variant="outline"
+                onClick={goToNextPage}
+                disabled={!hasMore || loading}
+              >
+                Suivant
+              </Button>
+            </div>
+          </div>
+        )}
 
         {entrepreneurs.length === 0 && !loading && (
           <div className="text-center py-12">

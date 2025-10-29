@@ -115,6 +115,44 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  useEffect(() => {
+    if (!user) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const refreshSession = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        if (cancelled) {
+          return;
+        }
+
+        if (data?.session) {
+          setSession(data.session);
+          if (data.session.user) {
+            const ensured = ensureSession(data.session.user.id);
+            setSessionInfo(ensured);
+          }
+        } else {
+          clearSessionCookie();
+          clearAuthState();
+        }
+      } catch (error) {
+        console.warn('⚠️ [AUTH] Refresh session failed:', error);
+      }
+    };
+
+    refreshSession();
+    const intervalId = window.setInterval(refreshSession, 30 * 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [user, clearAuthState, ensureSession, clearSessionCookie, setSessionInfo]);
+
   const register = async (email, password, firstName, lastName) => {
     try {
       console.log('🔵 [AUTH] Starting registration with Supabase...');

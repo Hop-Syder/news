@@ -175,6 +175,23 @@ async def update_my_status(status_payload: EntrepreneurStatusUpdate, current_use
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to update status: {str(e)}")
 
 
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_my_profile(current_user: dict = Depends(get_current_user), supabase: Client = Depends(get_supabase_admin)):
+    try:
+        existing = supabase.table('entrepreneurs').select('id').eq('user_id', current_user['id']).single().execute()
+        if not existing.data:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Entrepreneur profile not found")
+
+        supabase.table('entrepreneurs').delete().eq('user_id', current_user['id']).execute()
+        supabase.table('user_profiles').update({'has_profile': False}).eq('user_id', current_user['id']).execute()
+        return None
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Delete my profile error: {str(e)}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to delete profile: {str(e)}")
+
+
 @router.get("/{entrepreneur_id}", response_model=EntrepreneurPublic)
 async def get_entrepreneur(entrepreneur_id: str, supabase: Client = Depends(get_supabase_admin)):
     try:
