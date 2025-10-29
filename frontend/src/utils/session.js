@@ -1,5 +1,8 @@
-const SESSION_COOKIE_NAME = 'session_id';
-const SESSION_META_KEY = 'nexus-session-meta';
+export const SESSION_COOKIE_NAME = 'session_id';
+export const SESSION_META_KEY = 'nexus-session-meta';
+export const ACTIVITY_KEY = 'nexus-connect-last-activity';
+export const LOGOUT_EVENT_KEY = 'nexus-connect-auth-logout';
+const SUPABASE_STORAGE_KEY = 'nexus-connect-auth';
 const SESSION_COOKIE_MAX_AGE = 60 * 60; // 1 heure
 
 const isSecureContext = () => {
@@ -99,7 +102,13 @@ export const clearSession = () => {
     document.cookie = `${SESSION_COOKIE_NAME}=; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/; SameSite=Strict`;
   }
   if (typeof window !== 'undefined') {
-    window.localStorage.removeItem(SESSION_META_KEY);
+    [SESSION_META_KEY, ACTIVITY_KEY, LOGOUT_EVENT_KEY, SUPABASE_STORAGE_KEY].forEach((key) => {
+      try {
+        window.localStorage.removeItem(key);
+      } catch (error) {
+        console.warn(`⚠️ [SESSION] Impossible de supprimer la clé ${key}:`, error);
+      }
+    });
   }
 };
 

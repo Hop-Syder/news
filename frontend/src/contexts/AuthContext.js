@@ -5,10 +5,10 @@ import {
   clearSession as clearSessionCookie,
   createSession,
   getSessionMeta,
+  LOGOUT_EVENT_KEY,
 } from '@/utils/session';
 
 const AuthContext = createContext(null);
-const LOGOUT_EVENT_KEY = 'nexus-connect-auth-logout';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -264,11 +264,6 @@ export const AuthProvider = ({ children }) => {
 
       clearAuthState();
       clearSessionCookie();
-      try {
-        window.localStorage.clear();
-      } catch (storageError) {
-        console.warn('⚠️ [AUTH] Impossible de vider localStorage:', storageError);
-      }
       broadcastLogout(reason);
 
       console.log('✅ [AUTH] Logout successful');
@@ -277,11 +272,6 @@ export const AuthProvider = ({ children }) => {
       // Clear local state even if server logout fails
       clearAuthState();
       clearSessionCookie();
-      try {
-        window.localStorage.clear();
-      } catch (storageError) {
-        console.warn('⚠️ [AUTH] Impossible de vider localStorage:', storageError);
-      }
       broadcastLogout(reason);
     }
   };

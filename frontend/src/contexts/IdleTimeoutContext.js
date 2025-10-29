@@ -18,13 +18,14 @@ import {
   hasValidSession,
   clearSession as clearSessionCookie,
   readSessionCookie,
+  ACTIVITY_KEY,
+  LOGOUT_EVENT_KEY,
 } from '@/utils/session';
 
 const IdleTimeoutContext = createContext({
   resetIdleTimer: () => {},
 });
 
-const ACTIVITY_KEY = 'nexus-connect-last-activity';
 const DEFAULT_IDLE_MINUTES =
   Number(process.env.REACT_APP_IDLE_TIMEOUT_MINUTES ??
     process.env.NEXT_PUBLIC_SESSION_IDLE_MINUTES ??
@@ -157,11 +158,6 @@ export const IdleTimeoutProvider = ({ children }) => {
 
     await logout(reason);
     clearSessionCookie();
-    try {
-      window.localStorage.clear();
-    } catch (error) {
-      console.warn('⚠️ [IDLE] Impossible de vider localStorage:', error);
-    }
 
     switch (reason) {
       case 'idle_timeout':
@@ -367,7 +363,7 @@ export const IdleTimeoutProvider = ({ children }) => {
 
   useEffect(() => {
     const storageListener = (event) => {
-      if (event.key === 'nexus-connect-auth-logout' && event.newValue) {
+      if (event.key === LOGOUT_EVENT_KEY && event.newValue) {
         try {
           const payload = JSON.parse(event.newValue);
           if (payload?.reason === 'idle_timeout') {
