@@ -1,10 +1,11 @@
 // Section : Importations nécessaires
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import axios from 'axios';
-import { ArrowRight, Users, Building2, Globe, Star } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Star } from 'lucide-react';
 import { IMAGES } from '@/config/images';
 import { useAuth } from '@/contexts/AuthContext';
 import VisionSection from '@/components/VisionSection';
@@ -12,6 +13,64 @@ import VisionSection from '@/components/VisionSection';
 // Section : Logique métier et structure du module
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+const ServiceCard = ({ service, index }) => {
+  const ref = useRef(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            obs.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <Card
+      ref={ref}
+      className={`group relative overflow-hidden rounded-3xl border border-gray-200 bg-white p-8 shadow-md transition-all duration-500 ease-out ${
+        isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+      } hover:-translate-y-2 hover:shadow-2xl`}
+      style={{ transitionDelay: `${index * 90}ms` }}
+    >
+      <div
+        className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${service.accentClass} opacity-0 transition-opacity duration-500 group-hover:opacity-100`}
+      />
+      <div className="relative">
+        <Badge className={`mb-4 inline-flex items-center gap-2 border ${service.badgeClass}`}>
+          {service.badge}
+        </Badge>
+        <h3 className="text-2xl font-bold text-bleu-marine">
+          {service.title}
+        </h3>
+        <p className="mt-4 text-sm leading-relaxed text-gray-600">
+          {service.description}
+        </p>
+        <ul className="mt-6 space-y-3 text-sm text-gray-700">
+          {service.points.map((point) => (
+            <li key={`${service.key}-${point}`} className="flex items-start gap-2">
+              <CheckCircle2 className="mt-0.5 h-4 w-4 text-vert-emeraude" />
+              <span>{point}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </Card>
+  );
+};
 
 const Home = () => {
   const [stats, setStats] = useState({
@@ -50,28 +109,64 @@ const Home = () => {
     }
   };
 
-  const services = [
+  const serviceModules = useMemo(() => [
     {
-      icon: <Users className="w-12 h-12 text-jaune-soleil" />,
-      title: "Annuaire Professionnel",
-      description: "Recherchez et découvrez des entrepreneurs dans toute l'Afrique de l'Ouest"
+      key: 'annuaire',
+      badge: 'Annuaire',
+      badgeClass: 'bg-bleu-marine/10 text-bleu-marine border-bleu-marine/30',
+      accentClass: 'from-bleu-marine/15 via-white/0 to-transparent',
+      title: 'Annuaire professionnel intelligent',
+      description:
+        'Référencez les entrepreneurs, artisans et startups béninois avec une recherche multicritères optimisée pour les langues locales et les réalités territoriales.',
+      points: [
+        'Recherche par ville, secteur et compétences',
+        'Cartographie interactive',
+        'Mode hors-ligne pour les agents de terrain'
+      ]
     },
     {
-      icon: <Building2 className="w-12 h-12 text-vert-emeraude" />,
-      title: "Profils Vérifiés",
-      description: "Des profils authentiques et validés pour une confiance maximale"
+      key: 'profils',
+      badge: 'Profil',
+      badgeClass: 'bg-vert-emeraude/10 text-vert-emeraude border-vert-emeraude/30',
+      accentClass: 'from-vert-emeraude/15 via-white/0 to-transparent',
+      title: 'Profils personnalisables',
+      description:
+        'Chaque acteur raconte son histoire avec des fiches produits, des photos, des tarifs et des liens de contact centralisés.',
+      points: [
+        'Templates métiers adaptés',
+        'Validation Nexus Partners',
+        'Support multilingue'
+      ]
     },
     {
-      icon: <Globe className="w-12 h-12 text-pourpre-royal" />,
-      title: "Réseau Régional",
-      description: "Connectez-vous avec 8 pays d'Afrique de l'Ouest"
+      key: 'pilotage',
+      badge: 'Pilotage',
+      badgeClass: 'bg-jaune-soleil/10 text-jaune-soleil border-jaune-soleil/30',
+      accentClass: 'from-jaune-soleil/20 via-white/0 to-transparent',
+      title: 'Pilotage administratif',
+      description:
+        'Le tableau de bord Nexus permet de valider les inscriptions, suivre les engagements et animer la communauté locale.',
+      points: [
+        'Workflow de validation',
+        'Alertes de conformité',
+        'Exports pour partenaires publics'
+      ]
     },
     {
-      icon: <Star className="w-12 h-12 text-rose-pastel" />,
-      title: "Visibilité Accrue",
-      description: "Augmentez votre visibilité et développez votre activité"
+      key: 'ia',
+      badge: 'IA',
+      badgeClass: 'bg-pourpre-royal/10 text-pourpre-royal border-pourpre-royal/30',
+      accentClass: 'from-pourpre-royal/15 via-white/0 to-transparent',
+      title: 'IA copilote (bientôt)',
+      description:
+        'Des agents IA pour suggérer des mises en relation, générer des descriptions professionnelles et analyser les tendances régionales.',
+      points: [
+        'Recommandations intelligentes',
+        'Analyse des secteurs porteurs',
+        'Rédaction assistée'
+      ]
     }
-  ];
+  ], []);
 
   const testimonials = [
     {
@@ -177,30 +272,21 @@ const Home = () => {
       {/* Services Section */}
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-bleu-marine mb-4">
-              Nos Services
+          <div className="mb-16 flex flex-col gap-4">
+            <Badge className="w-fit bg-bleu-marine text-white px-4 py-1 text-sm font-semibold tracking-wide">
+              Suite Nexus Connect
+            </Badge>
+            <h2 className="text-4xl font-bold text-bleu-marine md:text-5xl">
+              Des services conçus pour le terrain ouest-africain
             </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Des outils puissants pour développer votre présence en ligne
+            <p className="max-w-3xl text-lg text-gray-600">
+              Une plateforme modulaire qui répond aux besoins des entrepreneurs, des réseaux d'accompagnement et des institutions publiques. Chaque service est pensé pour les réalités du Bénin et de l'Afrique de l'Ouest.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {services.map((service, index) => (
-              <Card key={index} className="hover:shadow-xl transition-shadow duration-300">
-                <CardContent className="p-6 text-center">
-                  <div className="flex justify-center mb-4">
-                    {service.icon}
-                  </div>
-                  <h3 className="text-xl font-semibold text-bleu-marine mb-3">
-                    {service.title}
-                  </h3>
-                  <p className="text-gray-600">
-                    {service.description}
-                  </p>
-                </CardContent>
-              </Card>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+            {serviceModules.map((service, index) => (
+              <ServiceCard key={service.key} service={service} index={index} />
             ))}
           </div>
         </div>
