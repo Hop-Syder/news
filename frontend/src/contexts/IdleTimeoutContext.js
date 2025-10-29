@@ -164,11 +164,7 @@ export const IdleTimeoutProvider = ({ children }) => {
     switch (reason) {
       case 'idle_timeout':
       case 'session_expired':
-        navigate(`/login?reason=${reason}`, { replace: true });
-        break;
       case 'manual':
-        navigate('/', { replace: true });
-        break;
       default:
         navigate('/', { replace: true });
         break;
@@ -368,27 +364,10 @@ export const IdleTimeoutProvider = ({ children }) => {
       if (event.key === LOGOUT_EVENT_KEY && event.newValue) {
         try {
           const payload = JSON.parse(event.newValue);
-          if (payload?.reason === 'idle_timeout') {
-            clearScheduledTimeouts();
-            hideWarning();
-            clearSessionCookie();
-            navigate(`/login?reason=${payload.reason}`, { replace: true });
-          } else if (payload?.reason === 'session_expired') {
-            clearScheduledTimeouts();
-            hideWarning();
-            clearSessionCookie();
-            navigate(`/login?reason=${payload.reason}`, { replace: true });
-          } else if (payload?.reason === 'manual') {
-            clearScheduledTimeouts();
-            hideWarning();
-            clearSessionCookie();
-            navigate('/', { replace: true });
-          } else {
-            clearScheduledTimeouts();
-            hideWarning();
-            clearSessionCookie();
-            navigate('/', { replace: true });
-          }
+          clearScheduledTimeouts();
+          hideWarning();
+          clearSessionCookie();
+          navigate('/', { replace: true });
         } catch (error) {
           console.warn('⚠️ [IDLE] Failed to parse logout broadcast:', error);
         }
