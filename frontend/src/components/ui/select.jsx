@@ -1,9 +1,11 @@
+// Section : Importations nécessaires
 import * as React from "react"
 import * as SelectPrimitive from "@radix-ui/react-select"
 import { Check, ChevronDown, ChevronUp } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+// Section : Logique métier et structure du module
 const Select = SelectPrimitive.Root
 
 const SelectGroup = SelectPrimitive.Group
@@ -117,3 +119,11 @@ export {
   SelectScrollUpButton,
   SelectScrollDownButton,
 }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

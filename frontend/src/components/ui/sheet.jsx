@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import * as React from "react"
 import * as SheetPrimitive from "@radix-ui/react-dialog"
 import { cva } from "class-variance-authority";
@@ -5,6 +6,7 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+// Section : Logique métier et structure du module
 const Sheet = SheetPrimitive.Root
 
 const SheetTrigger = SheetPrimitive.Trigger
@@ -106,3 +108,11 @@ export {
   SheetTitle,
   SheetDescription,
 }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

@@ -1,7 +1,9 @@
+// Section : Importations nécessaires
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// Section : Logique métier et structure du module
 const Input = React.forwardRef(({ className, type, ...props }, ref) => {
   return (
     <input
@@ -17,3 +19,11 @@ const Input = React.forwardRef(({ className, type, ...props }, ref) => {
 Input.displayName = "Input"
 
 export { Input }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

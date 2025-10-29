@@ -1,8 +1,10 @@
+// Section : Importations nécessaires
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
+// Section : Logique métier et structure du module
 const EmailConfirmation = () => {
   const location = useLocation();
   const email = location.state?.email;
@@ -36,3 +38,10 @@ const EmailConfirmation = () => {
 
 export default EmailConfirmation;
 
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

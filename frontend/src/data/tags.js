@@ -1,5 +1,7 @@
+// Section : Importations nécessaires
 // Tags/Compétences prédéfinis pour Nexus Connect
 
+// Section : Logique métier et structure du module
 export const AVAILABLE_TAGS = [
   // Tech & Digital
   { value: "Développement Web", category: "tech", icon: "💻" },
@@ -178,3 +180,11 @@ export const searchTags = (query) => {
     tag.value.toLowerCase().includes(lowerQuery)
   );
 };
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

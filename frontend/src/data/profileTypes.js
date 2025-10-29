@@ -1,4 +1,6 @@
+// Section : Importations nécessaires
 // Types de profils avec icônes
+// Section : Logique métier et structure du module
 export const PROFILE_TYPES = [
   {
     value: "entreprise",
@@ -53,3 +55,11 @@ export const PROFILE_TYPES = [
 export const getProfileType = (value) => {
   return PROFILE_TYPES.find(pt => pt.value === value);
 };
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

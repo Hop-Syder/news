@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import * as React from "react"
 import * as ToastPrimitives from "@radix-ui/react-toast"
 import { cva } from "class-variance-authority";
@@ -5,6 +6,7 @@ import { X } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 
+// Section : Logique métier et structure du module
 const ToastProvider = ToastPrimitives.Provider
 
 const ToastViewport = React.forwardRef(({ className, ...props }, ref) => (
@@ -83,3 +85,11 @@ const ToastDescription = React.forwardRef(({ className, ...props }, ref) => (
 ToastDescription.displayName = ToastPrimitives.Description.displayName
 
 export { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose, ToastAction };
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

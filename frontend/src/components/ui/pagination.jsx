@@ -1,9 +1,11 @@
+// Section : Importations nécessaires
 import * as React from "react"
 import { ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button";
 
+// Section : Logique métier et structure du module
 const Pagination = ({
   className,
   ...props
@@ -98,3 +100,11 @@ export {
   PaginationNext,
   PaginationEllipsis,
 }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 export const SESSION_COOKIE_NAME = 'session_id';
 export const SESSION_META_KEY = 'nexus-session-meta';
 export const ACTIVITY_KEY = 'nexus-connect-last-activity';
@@ -126,3 +127,11 @@ export const getSessionMeta = () => {
     return null;
   }
 };
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

@@ -1,9 +1,11 @@
+// Section : Importations nécessaires
 import * as React from "react"
 import * as ToggleGroupPrimitive from "@radix-ui/react-toggle-group"
 
 import { cn } from "@/lib/utils"
 import { toggleVariants } from "@/components/ui/toggle"
 
+// Section : Logique métier et structure du module
 const ToggleGroupContext = React.createContext({
   size: "default",
   variant: "default",
@@ -41,3 +43,11 @@ const ToggleGroupItem = React.forwardRef(({ className, children, variant, size, 
 ToggleGroupItem.displayName = ToggleGroupPrimitive.Item.displayName
 
 export { ToggleGroup, ToggleGroupItem }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

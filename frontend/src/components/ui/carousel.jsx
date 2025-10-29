@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import * as React from "react"
 import useEmblaCarousel from "embla-carousel-react";
 import { ArrowLeft, ArrowRight } from "lucide-react"
@@ -5,6 +6,7 @@ import { ArrowLeft, ArrowRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
+// Section : Logique métier et structure du module
 const CarouselContext = React.createContext(null)
 
 function useCarousel() {
@@ -191,3 +193,11 @@ const CarouselNext = React.forwardRef(({ className, variant = "outline", size = 
 CarouselNext.displayName = "CarouselNext"
 
 export { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext };
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

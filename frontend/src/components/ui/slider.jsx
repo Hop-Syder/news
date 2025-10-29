@@ -1,8 +1,10 @@
+// Section : Importations nécessaires
 import * as React from "react"
 import * as SliderPrimitive from "@radix-ui/react-slider"
 
 import { cn } from "@/lib/utils"
 
+// Section : Logique métier et structure du module
 const Slider = React.forwardRef(({ className, ...props }, ref) => (
   <SliderPrimitive.Root
     ref={ref}
@@ -19,3 +21,11 @@ const Slider = React.forwardRef(({ className, ...props }, ref) => (
 Slider.displayName = SliderPrimitive.Root.displayName
 
 export { Slider }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

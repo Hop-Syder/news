@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Phone, Mail, MapPin, CheckCircle2 } from 'lucide-react';
 
+// Section : Logique métier et structure du module
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
@@ -316,3 +318,11 @@ const Contact = () => {
 };
 
 export default Contact;
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

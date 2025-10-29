@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -12,6 +13,7 @@ import MaCarte from "@/pages/MaCarte";
 import MonProfil from "@/pages/MonProfil";
 import Connexion from "@/pages/Connexion";
 
+// Section : Logique métier et structure du module
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
@@ -73,3 +75,11 @@ function App() {
 }
 
 export default App;
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

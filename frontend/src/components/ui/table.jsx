@@ -1,7 +1,9 @@
+// Section : Importations nécessaires
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// Section : Logique métier et structure du module
 const Table = React.forwardRef(({ className, ...props }, ref) => (
   <div className="relative w-full overflow-auto">
     <table
@@ -84,3 +86,11 @@ export {
   TableCell,
   TableCaption,
 }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

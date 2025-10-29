@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import React, { useCallback, useEffect, useState } from 'react';
 import axios from 'axios';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -25,6 +26,7 @@ import { COUNTRIES, getCountryCities } from '@/data/countries';
 import { PROFILE_TYPES } from '@/data/profileTypes';
 import { AVAILABLE_TAGS } from '@/data/tags';
 
+// Section : Logique métier et structure du module
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = BACKEND_URL ? `${BACKEND_URL}/api` : '';
 
@@ -782,3 +784,11 @@ const MaCarte = () => {
 };
 
 export default MaCarte;
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

@@ -1,8 +1,10 @@
+// Section : Importations nécessaires
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+// Section : Logique métier et structure du module
 const visionContent = {
   badge: 'Vision Nexus • Pont numérique béninois',
   title: 'Offrir à chaque talent béninois une vitrine numérique fiable et connectée.',
@@ -137,3 +139,11 @@ const VisionSection = () => {
 };
 
 export default VisionSection;
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

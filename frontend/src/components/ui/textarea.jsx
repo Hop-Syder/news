@@ -1,7 +1,9 @@
+// Section : Importations nécessaires
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
+// Section : Logique métier et structure du module
 const Textarea = React.forwardRef(({ className, ...props }, ref) => {
   return (
     <textarea
@@ -16,3 +18,11 @@ const Textarea = React.forwardRef(({ className, ...props }, ref) => {
 Textarea.displayName = "Textarea"
 
 export { Textarea }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

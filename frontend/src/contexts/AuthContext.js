@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import {
@@ -8,6 +9,7 @@ import {
   LOGOUT_EVENT_KEY,
 } from '@/utils/session';
 
+// Section : Logique métier et structure du module
 const AuthContext = createContext(null);
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
@@ -300,3 +302,11 @@ export const useAuth = () => {
   }
   return context;
 };
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

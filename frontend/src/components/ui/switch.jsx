@@ -1,8 +1,10 @@
+// Section : Importations nécessaires
 import * as React from "react"
 import * as SwitchPrimitives from "@radix-ui/react-switch"
 
 import { cn } from "@/lib/utils"
 
+// Section : Logique métier et structure du module
 const Switch = React.forwardRef(({ className, ...props }, ref) => (
   <SwitchPrimitives.Root
     className={cn(
@@ -20,3 +22,11 @@ const Switch = React.forwardRef(({ className, ...props }, ref) => (
 Switch.displayName = SwitchPrimitives.Root.displayName
 
 export { Switch }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

@@ -1,6 +1,8 @@
+// Section : Importations nécessaires
 import { useTheme } from "next-themes"
 import { Toaster as Sonner, toast } from "sonner"
 
+// Section : Logique métier et structure du module
 const Toaster = ({
   ...props
 }) => {
@@ -26,3 +28,11 @@ const Toaster = ({
 }
 
 export { Toaster, toast }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

@@ -1,7 +1,9 @@
+// Section : Importations nécessaires
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin } from 'lucide-react';
 
+// Section : Logique métier et structure du module
 const Footer = () => {
   return (
     <footer className="bg-charbon text-white">
@@ -97,3 +99,11 @@ const Footer = () => {
 };
 
 export default Footer;
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

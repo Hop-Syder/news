@@ -1,6 +1,8 @@
+// Section : Importations nécessaires
 import { createClient } from '@supabase/supabase-js'
 
 // Supabase configuration from environment variables
+// Section : Logique métier et structure du module
 const supabaseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://temp-placeholder.supabase.co'
 const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.temp'
 
@@ -22,3 +24,11 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 })
 
 export default supabase
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
@@ -19,6 +20,7 @@ import {
   User
 } from 'lucide-react';
 
+// Section : Logique métier et structure du module
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = BACKEND_URL ? `${BACKEND_URL}/api` : '';
 
@@ -261,3 +263,11 @@ const MonProfil = () => {
 };
 
 export default MonProfil;
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

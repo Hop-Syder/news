@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import React, { useEffect, useMemo } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -5,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { LogIn } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 
+// Section : Logique métier et structure du module
 const reasonMessages = {
   idle_timeout: {
     title: 'Session expirée pour votre sécurité',
@@ -94,3 +96,11 @@ const Connexion = () => {
 };
 
 export default Connexion;
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

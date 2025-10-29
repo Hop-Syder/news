@@ -1,7 +1,9 @@
 "use client";
+// Section : Importations nécessaires
 // Inspired by react-hot-toast library
 import * as React from "react"
 
+// Section : Logique métier et structure du module
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
@@ -153,3 +155,11 @@ function useToast() {
 }
 
 export { useToast, toast }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

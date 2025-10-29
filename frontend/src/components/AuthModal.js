@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import React, { useState, useEffect } from 'react';
 import { useAuth, supabase } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -9,6 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 
+// Section : Logique métier et structure du module
 const AuthModal = ({ isOpen, onClose, mode: initialMode, onSwitchMode }) => {
   const { login, register, loginWithGoogle, user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
@@ -322,3 +324,11 @@ const AuthModal = ({ isOpen, onClose, mode: initialMode, onSwitchMode }) => {
 };
 
 export default AuthModal;
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

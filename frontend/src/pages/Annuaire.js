@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { COUNTRIES, getCountryCities } from '@/data/countries';
 import { PROFILE_TYPES } from '@/data/profileTypes';
 import { Search, MapPin, Star, Crown, Phone, Mail } from 'lucide-react';
 
+// Section : Logique métier et structure du module
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
@@ -233,8 +235,8 @@ const Annuaire = () => {
               <Card
                 key={entrepreneur.id}
                 className={`relative overflow-hidden rounded-3xl transition-transform duration-300 hover:-translate-y-1 hover:shadow-2xl border-2 ${isPremium
-                    ? 'bg-gradient-to-br from-amber-50 via-white to-amber-100 border-[#FAD02E] shadow-[0_10px_40px_rgba(250,208,46,0.25)]'
-                    : 'bg-white border-gray-200 hover:border-bleu-marine/20'
+                  ? 'bg-gradient-to-br from-amber-50 via-white to-amber-100 border-[#FAD02E] shadow-[0_10px_40px_rgba(250,208,46,0.25)]'
+                  : 'bg-white border-gray-200 hover:border-bleu-marine/20'
                   }`}
                 data-testid="entrepreneur-card"
               >
@@ -267,7 +269,7 @@ const Annuaire = () => {
                     <h3 className="text-2xl font-extrabold text-bleu-marine">
                       {entrepreneur.company_name || 'Carte entrepreneur'}
                     </h3>
-                    <p className="text-sm text-gray-500">{fullName}</p>
+                    <h4 className="text-sm text-gray-500">{fullName}</h4>
                     <div className="flex items-center justify-center text-sm text-gray-500">
                       <MapPin className="w-4 h-4 mr-1" />
                       {entrepreneur.city}, {COUNTRIES[entrepreneur.country_code]?.name || entrepreneur.country_code}
@@ -350,3 +352,11 @@ const Annuaire = () => {
 };
 
 export default Annuaire;
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

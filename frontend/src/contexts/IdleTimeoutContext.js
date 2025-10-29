@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import React, {
   createContext,
   useCallback,
@@ -22,6 +23,7 @@ import {
   LOGOUT_EVENT_KEY,
 } from '@/utils/session';
 
+// Section : Logique métier et structure du module
 const IdleTimeoutContext = createContext({
   resetIdleTimer: () => {},
 });
@@ -425,3 +427,11 @@ export const useIdleTimeout = () => {
   }
   return context;
 };
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

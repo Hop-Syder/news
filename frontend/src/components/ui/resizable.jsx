@@ -1,8 +1,10 @@
+// Section : Importations nécessaires
 import { GripVertical } from "lucide-react"
 import * as ResizablePrimitive from "react-resizable-panels"
 
 import { cn } from "@/lib/utils"
 
+// Section : Logique métier et structure du module
 const ResizablePanelGroup = ({
   className,
   ...props
@@ -38,3 +40,11 @@ const ResizableHandle = ({
 )
 
 export { ResizablePanelGroup, ResizablePanel, ResizableHandle }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

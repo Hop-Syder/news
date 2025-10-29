@@ -1,4 +1,6 @@
+// Section : Importations nécessaires
 // Pays et villes d'Afrique de l'Ouest
+// Section : Logique métier et structure du module
 export const COUNTRIES = {
   BJ: {
     code: "BJ",
@@ -61,3 +63,11 @@ export const getCountryCities = (countryCode) => {
 export const getCountryName = (countryCode) => {
   return COUNTRIES[countryCode]?.name || countryCode;
 };
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

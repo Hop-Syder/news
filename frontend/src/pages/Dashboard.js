@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +17,7 @@ import { PROFILE_TYPES } from '@/data/profileTypes';
 import { AVAILABLE_TAGS, CATEGORY_NAMES, TAGS_BY_CATEGORY } from '@/data/tags';
 import { ChevronLeft, ChevronRight, CheckCircle2, Upload, X, Search, EyeOff } from 'lucide-react';
 
+// Section : Logique métier et structure du module
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
@@ -1020,3 +1022,11 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { Controller, FormProvider, useFormContext } from "react-hook-form";
@@ -5,6 +6,7 @@ import { Controller, FormProvider, useFormContext } from "react-hook-form";
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 
+// Section : Logique métier et structure du module
 const Form = FormProvider
 
 const FormFieldContext = React.createContext({})
@@ -131,3 +133,11 @@ export {
   FormMessage,
   FormField,
 }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

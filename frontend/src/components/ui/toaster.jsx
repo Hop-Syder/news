@@ -1,3 +1,4 @@
+// Section : Importations nécessaires
 import { useToast } from "@/hooks/use-toast"
 import {
   Toast,
@@ -8,6 +9,7 @@ import {
   ToastViewport,
 } from "@/components/ui/toast"
 
+// Section : Logique métier et structure du module
 export function Toaster() {
   const { toasts } = useToast()
 
@@ -31,3 +33,11 @@ export function Toaster() {
     </ToastProvider>
   );
 }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────

@@ -1,8 +1,10 @@
+// Section : Importations nécessaires
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/lib/utils"
 
+// Section : Logique métier et structure du module
 const Drawer = ({
   shouldScaleBackground = true,
   ...props
@@ -88,3 +90,11 @@ export {
   DrawerTitle,
   DrawerDescription,
 }
+
+// ──────────────────────────────────
+// Hop-Syder Développeur
+// Full Stack & Data Scientist Nexus Partners
+// 📧 daoudaabassichristian@gmail.com
+// 📱 +229 0196701733
+// 🌐 nexuspartners.xyz
+// ──────────────────────────────────
