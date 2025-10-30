@@ -12,7 +12,7 @@ import { apiClient } from '@/lib/httpClient';
 
 // Section : Logique métier et structure du module
 const PAGE_SIZE = 9;
-const CACHE_TTL = 5 * 60 * 1000;
+const CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
 const Annuaire = () => {
   const [entrepreneurs, setEntrepreneurs] = useState([]);
@@ -308,11 +308,6 @@ const Annuaire = () => {
           <p className="text-gray-600">
             {loading ? 'Chargement...' : `Page ${page} • ${entrepreneurs.length} profil(s) affiché(s)`}
           </p>
-          {!loading && (
-            <span className="text-sm text-gray-500">
-              Résultats mis en cache pendant 5 minutes pour des chargements rapides
-            </span>
-          )}
         </div>
 
         {/* Entrepreneurs Grid */}
